@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delete Portfolio — MyShareApp</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>.delete-wrap{max-width:480px;margin:18px auto;}.delete-card{background: var(--bg-surface);border:1px solid var(--border);border-radius:16px;padding:30px;text-align:center;}.delete-actions{display:flex;gap:10px;margin-top:20px;}.btn-danger-full{flex:1;padding:11px;border:none;border-radius:9px;background:var(--red);color:#fff;font-weight:700;cursor:pointer;}.btn-cancel-link{flex:1;padding:11px;border-radius:9px;border:1px solid var(--border);text-decoration:none;color:var(--text-secondary);}</style>
+</head>
+<body>
+  <div th:replace="~{fragments/public-layout :: header('portfolio')}"></div>
+  <main class="container-main">
+    <div class="delete-wrap"><div class="delete-card">
+      <h2>Delete Portfolio?</h2>
+      <p>Permanent action for <strong th:text="${portfolio.portfolioName}">Portfolio</strong> (<span th:text="${stockCount}">0</span> stock entries).</p>
+      <form action="/delete_portfolio.php" method="POST">
+        <input type="hidden" name="id" th:value="${portfolio.id}">
+        <div class="delete-actions"><a href="/portfolio.php" class="btn-cancel-link">Cancel</a><button type="submit" class="btn-danger-full">Yes, Delete</button></div>
+      </form>
+    </div></div>
+  </main>
+  <div th:replace="~{fragments/public-layout :: footer}"></div>
+  <script src="/script.js"></script>
+</body>
+</html>

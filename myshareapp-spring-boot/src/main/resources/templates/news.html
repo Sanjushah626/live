@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Market News &amp; IPOs — MyShareApp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .news-container { max-width: 1040px; margin: 0 auto; }
+    .page-heading { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin: 4px 0 18px; }
+    .page-heading h2 { color: var(--text-primary); font-weight: 800; font-size: 24px; letter-spacing: -0.02em; margin: 0; }
+    .page-heading .subtitle { color: var(--text-muted); font-size: 13px; }
+    .news-tabs { display: inline-flex; gap: 4px; background: var(--bg-elevated); padding: 4px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 18px; flex-wrap: wrap; }
+    .news-tab { border: none; background: transparent; padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 600; color: var(--text-secondary); cursor: pointer; }
+    .news-tab.active { background: var(--bg-surface); color: var(--accent); box-shadow: var(--shadow-xs); }
+    .news-panel { display: none; }
+    .news-panel.active { display: block; }
+    .news-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+    .news-search {
+      flex: 1; min-width: 220px; padding: 9px 13px; background: var(--bg-surface);
+      border: 1px solid var(--border); border-radius: 10px; font-size: 13.5px; color: var(--text-primary);
+    }
+    .news-search:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .source-pills { display: inline-flex; gap: 4px; background: var(--bg-elevated); padding: 4px; border-radius: 10px; border: 1px solid var(--border); flex-wrap: wrap; }
+    .source-pill {
+      border: none; background: transparent; padding: 6px 12px; border-radius: 7px; font-size: 12px;
+      font-weight: 600; color: var(--text-secondary); cursor: pointer;
+    }
+    .source-pill.active { background: var(--bg-surface); color: var(--accent); box-shadow: var(--shadow-xs); }
+    .news-list { display: flex; flex-direction: column; gap: 14px; }
+    .news-card {
+      display: flex; gap: 18px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 14px;
+      padding: 18px 20px; box-shadow: var(--shadow-xs); transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .news-card:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); }
+    .news-card .thumb { flex: 0 0 auto; width: 150px; height: 105px; border-radius: 10px; overflow: hidden; background: var(--bg-elevated); border: 1px solid var(--border-soft); }
+    .news-card .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .news-card .body { flex: 1; min-width: 0; }
+    .news-meta-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+    .source-badge {
+      display: inline-block; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .source-badge.exchange { background: var(--accent-soft); color: var(--accent); }
+    .source-badge.disclosure { background: var(--amber-soft); color: var(--amber); }
+    .source-badge.editorial { background: var(--green-soft); color: var(--green); }
+    .news-card .date { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+    .news-card h3 { margin: 0 0 8px; font-size: 16.5px; font-weight: 700; color: var(--text-primary); }
+    .news-card p { margin: 0; color: var(--text-secondary); font-size: 13.8px; line-height: 1.6; white-space: pre-line; }
+    .doc-link {
+      display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 12.5px; font-weight: 600;
+      color: var(--accent); text-decoration: none;
+    }
+    .doc-link:hover { text-decoration: underline; }
+    .ipo-section-title { font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 20px 0 12px; }
+    .ipo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+    .ipo-card {
+      background: var(--bg-surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px;
+      box-shadow: var(--shadow-xs); display: flex; flex-direction: column; gap: 10px;
+    }
+    .ipo-card h3 { margin: 0; font-size: 16px; font-weight: 700; color: var(--text-primary); line-height: 1.4; }
+    .ipo-meta-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; background: var(--bg-elevated); padding: 10px 12px; border-radius: 10px; }
+    .ipo-meta-label { display: block; font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--text-muted); }
+    .ipo-meta-val { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+    .ipo-desc { margin: 0; font-size: 12.8px; color: var(--text-secondary); line-height: 1.5; }
+    .corp-table-wrap { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 14px; overflow-x: auto; box-shadow: var(--shadow-xs); }
+    .corp-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    .corp-table th { background: var(--bg-elevated); padding: 12px 14px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary); border-bottom: 1px solid var(--border); }
+    .corp-table td { padding: 12px 14px; border-bottom: 1px solid var(--border-soft); color: var(--text-primary); }
+    .corp-table tr:last-child td { border-bottom: none; }
+    .empty-state { background: var(--bg-surface); border: 1px dashed var(--border); border-radius: 14px; padding: 36px 24px; text-align: center; color: var(--text-muted); }
+    @media (max-width: 560px) {
+      .news-card { flex-direction: column; }
+      .news-card .thumb { width: 100%; height: 160px; }
+    }
+  </style>
+</head>
+<body>
+  <div th:replace="~{fragments/public-layout :: header('news')}"></div>
+
+  <main class="container-main">
+    <div class="news-container">
+      <div class="page-heading">
+        <h2>Market News, IPOs &amp; Dividends</h2>
+        <span class="subtitle">Live YONEPSE NEPSE notices, company disclosures, upcoming IPOs &amp; dividend history</span>
+      </div>
+
+      <div class="news-tabs">
+        <button type="button" class="news-tab active" data-panel="panelNews"
+                th:text="|Market News (${#lists.size(yonepseNews) + #lists.size(news)})|">Market News</button>
+        <button type="button" class="news-tab" data-panel="panelIpos"
+                th:text="|Upcoming IPOs (${#lists.size(ipos)})|">Upcoming IPOs</button>
+        <button type="button" class="news-tab" data-panel="panelDivs"
+                th:text="|Dividends (${#lists.size(dividends)})|">Dividends</button>
+      </div>
+
+      <div class="news-panel active" id="panelNews">
+        <div class="news-toolbar">
+          <input type="text" id="newsSearchInput" class="news-search" placeholder="Search notices, symbols, or keywords...">
+          <div class="source-pills" id="newsSourcePills">
+            <button type="button" class="source-pill active" data-source="all"
+                    th:text="|All (${#lists.size(yonepseNews) + #lists.size(news)})|">All</button>
+            <button type="button" class="source-pill" data-source="exchange">NEPSE Notices</button>
+            <button type="button" class="source-pill" data-source="disclosure">Disclosures</button>
+            <button type="button" class="source-pill" data-source="editorial"
+                    th:text="|Editorial (${#lists.size(news)})|">Editorial</button>
+          </div>
+        </div>
+
+        <div th:if="${#lists.isEmpty(yonepseNews) and #lists.isEmpty(news)}" class="empty-state">
+          <strong>No news yet</strong><br>Check back soon — new market updates will show up here.
+        </div>
+
+        <div th:if="${!#lists.isEmpty(yonepseNews) or !#lists.isEmpty(news)}" class="news-list" id="newsList">
+          <article class="news-card" th:each="n : ${news}" data-source="editorial">
+            <div class="thumb" th:if="${n.image != null and !n.image.isEmpty()}">
+              <img th:src="|/uploads/news/${n.image}|" th:alt="${n.title}" onerror="this.parentElement.style.display='none'">
+            </div>
+            <div class="body">
+              <div class="news-meta-row">
+                <span class="source-badge editorial">Editorial</span>
+                <span class="date" th:text="${@fmt.dateTime(n.createdAt)}">Date</span>
+              </div>
+              <h3 th:text="${n.title}">News Title</h3>
+              <p th:if="${n.description != null and !n.description.isEmpty()}" th:text="${n.description}">Description</p>
+            </div>
+          </article>
+
+          <article class="news-card" th:each="item : ${yonepseNews}" th:attr="data-source=${item['sourceType']}">
+            <div class="body">
+              <div class="news-meta-row">
+                <span class="source-badge" th:classappend="${item['sourceType']}" th:text="${item['sourceLabel']}">Notice</span>
+                <span class="sym-badge" th:if="${item['symbol'] != null}" th:text="${item['symbol']}">SYM</span>
+                <span class="date" th:text="${item['publishedAt'] != null ? @fmt.dateTime(item['publishedAt']) : 'Recent'}">Recent</span>
+              </div>
+              <h3 th:text="${item['title']}">Title</h3>
+              <p th:if="${item['body'] != null and !#strings.isEmpty(item['body'])}" th:text="${item['body']}">Body</p>
+              <a th:if="${item['documentUrl'] != null}" th:href="${item['documentUrl']}" target="_blank" rel="noopener noreferrer" class="doc-link">View Filing Document &rarr;</a>
+            </div>
+          </article>
+        </div>
+        <div class="empty-state" id="newsSearchEmpty" style="display:none;margin-top:14px;">No matching news articles found.</div>
+      </div>
+
+      <div class="news-panel" id="panelIpos">
+        <div th:if="${#lists.isEmpty(ipos)}" class="empty-state">No active upcoming IPO issues right now. Check recent closed issues below.</div>
+
+        <div th:if="${!#lists.isEmpty(ipos)}" class="ipo-grid">
+          <div class="ipo-card" th:each="item : ${ipos}">
+            <div class="news-meta-row" style="margin-bottom:0;">
+              <span class="source-badge editorial" th:text="${item['status']}">Upcoming</span>
+              <span class="sym-badge" th:if="${item['reservedFor'] != null}" th:text="${item['reservedFor']}">General Public</span>
+            </div>
+            <h3 th:text="${item['company']}">Company</h3>
+            <div class="ipo-meta-grid">
+              <div>
+                <span class="ipo-meta-label">Issue Units</span>
+                <span class="ipo-meta-val" th:text="${item['units']}">-</span>
+              </div>
+              <div>
+                <span class="ipo-meta-label">Open / Close Dates</span>
+                <span class="ipo-meta-val" th:text="${item['dateRange']}">-</span>
+              </div>
+              <div>
+                <span class="ipo-meta-label">Announced</span>
+                <span class="ipo-meta-val" th:text="${item['announcementDate']}">-</span>
+              </div>
+              <div>
+                <span class="ipo-meta-label">Category</span>
+                <span class="ipo-meta-val" th:text="${item['isReservedShare'] ? 'Reserved / Local' : 'General Public'}">General Public</span>
+              </div>
+            </div>
+            <p class="ipo-desc" th:if="${item['fullText'] != null and !#strings.isEmpty(item['fullText'])}" th:text="${item['fullText']}">Details</p>
+            <a th:if="${item['url'] != null}" th:href="${item['url']}" target="_blank" rel="noopener noreferrer" class="doc-link">Read Notice Details &rarr;</a>
+          </div>
+        </div>
+
+        <th:block th:if="${!#lists.isEmpty(recentIpos)}">
+          <h3 class="ipo-section-title" th:text="|Recent &amp; Closed IPO Issues (${#lists.size(recentIpos)})|">Recent IPOs</h3>
+          <div class="corp-table-wrap">
+            <table class="corp-table">
+              <thead>
+                <tr>
+                  <th>Company</th>
+                  <th>Units</th>
+                  <th>Issue Dates</th>
+                  <th>Target Group</th>
+                  <th>Notice</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="item : ${recentIpos}">
+                  <td><strong th:text="${item['company']}">Company</strong></td>
+                  <td th:text="${item['units']}">-</td>
+                  <td th:text="${item['dateRange']}">-</td>
+                  <td><span class="sym-badge" th:text="${item['reservedFor']}">General Public</span></td>
+                  <td>
+                    <a th:if="${item['url'] != null}" th:href="${item['url']}" target="_blank" rel="noopener noreferrer" class="doc-link" style="margin-top:0;">View &rarr;</a>
+                    <span th:if="${item['url'] == null}">-</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </th:block>
+      </div>
+
+      <div class="news-panel" id="panelDivs">
+        <div class="news-toolbar">
+          <input type="text" id="divSearchInput" class="news-search" placeholder="Filter dividend history by symbol or fiscal year...">
+        </div>
+        <div th:if="${#lists.isEmpty(dividends)}" class="empty-state">No dividend history available from YONEPSE right now.</div>
+        <div th:if="${!#lists.isEmpty(dividends)}" class="corp-table-wrap">
+          <table class="corp-table" id="divTable">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Fiscal Year</th>
+                <th>Bonus %</th>
+                <th>Cash %</th>
+                <th>Total %</th>
+                <th>Announced</th>
+                <th>Book Close</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="d : ${dividends}">
+                <td><span class="sym-badge" th:text="${d['symbol']}">SYM</span></td>
+                <td th:text="${d['fiscalYear']}">-</td>
+                <td th:text="${d['bonusShare']}">-</td>
+                <td th:text="${d['cashDividend']}">-</td>
+                <td><strong th:text="${d['totalDividend']}">-</strong></td>
+                <td th:text="${d['announceDate']}">-</td>
+                <td th:text="${d['bookCloseDate']}">-</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div th:replace="~{fragments/public-layout :: footer}"></div>
+  <script src="/script.js"></script>
+  <script>
+    document.querySelectorAll('.news-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.news-tab').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.news-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.panel).classList.add('active');
+      });
+    });
+
+    let activeSource = 'all';
+    function filterNews() {
+      const q = (document.getElementById('newsSearchInput')?.value || '').trim().toLowerCase();
+      const cards = document.querySelectorAll('#newsList .news-card');
+      let shown = 0;
+      cards.forEach(card => {
+        const src = card.dataset.source;
+        const matchSrc = activeSource === 'all' || src === activeSource;
+        const matchText = !q || card.textContent.toLowerCase().includes(q);
+        const visible = matchSrc && matchText;
+        card.style.display = visible ? '' : 'none';
+        if (visible) shown++;
+      });
+      const emptyEl = document.getElementById('newsSearchEmpty');
+      if (emptyEl) emptyEl.style.display = shown === 0 && cards.length > 0 ? 'block' : 'none';
+    }
+
+    document.getElementById('newsSearchInput')?.addEventListener('input', filterNews);
+    document.querySelectorAll('#newsSourcePills .source-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#newsSourcePills .source-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeSource = btn.dataset.source;
+        filterNews();
+      });
+    });
+
+    document.getElementById('divSearchInput')?.addEventListener('input', e => {
+      const q = e.target.value.trim().toLowerCase();
+      document.querySelectorAll('#divTable tbody tr').forEach(tr => {
+        tr.style.display = !q || tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>

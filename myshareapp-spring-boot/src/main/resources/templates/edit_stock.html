@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Stock — MyShareApp</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>.form-wrap{max-width:520px;margin:12px auto;}.form-card{background: var(--bg-surface);border:1px solid var(--border);border-radius:16px;padding:28px 30px;}.form-card label{display:block;margin-top:14px;font-weight:600;font-size:13px;}.form-card input,.form-card select{width:100%;padding:10px 12px;margin-top:6px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:9px;}.field-hidden{display:none !important;}.form-actions{display:flex;gap:10px;margin-top:22px;}.btn-primary-full{flex:1;padding:11px;border:none;border-radius:9px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer;}.btn-cancel-link{padding:11px 18px;border-radius:9px;border:1px solid var(--border);text-decoration:none;color:var(--text-secondary);}</style>
+</head>
+<body>
+  <div th:replace="~{fragments/public-layout :: header('portfolio')}"></div>
+  <main class="container-main">
+    <div class="form-wrap"><div class="form-card">
+      <h2>Edit Stock Holding</h2>
+      <form th:action="@{/edit_stock.php(id=${stock.id})}" method="POST">
+        <input type="hidden" name="id" th:value="${stock.id}">
+        <label for="symbol">Symbol</label><input type="text" id="symbol" name="symbol" th:value="${stock.symbol}" required>
+        <label for="purchase_type">Purchase Type</label>
+        <select id="purchase_type" name="purchase_type" required>
+          <option value="Secondary" th:selected="${stock.purchaseType == 'Secondary'}">Secondary Market</option>
+          <option value="IPO" th:selected="${stock.purchaseType == 'IPO'}">IPO / Right Share</option>
+          <option value="Bonus" th:selected="${stock.purchaseType == 'Bonus'}">Bonus Share (Cost Rs. 0)</option>
+        </select>
+        <label for="quantity">Quantity</label><input type="number" id="quantity" name="quantity" th:value="${stock.quantity}" min="0" required>
+        <div id="editBuyPriceWrapper"><label for="buy_price">Average Buy Price (Rs.)</label><input type="number" id="buy_price" name="buy_price" step="0.01" min="0" th:value="${stock.buyPrice}" required></div>
+        <label for="buy_date">Buy Date</label><input type="date" id="buy_date" name="buy_date" th:value="${stock.buyDate}">
+        <div class="form-actions"><button type="submit" class="btn-primary-full">Update Holding</button><a href="/portfolio.php" class="btn-cancel-link">Cancel</a></div>
+      </form>
+    </div></div>
+  </main>
+  <div th:replace="~{fragments/public-layout :: footer}"></div>
+  <script src="/script.js"></script>
+  <script>
+    (function () {
+      const sel = document.getElementById('purchase_type');
+      const wrap = document.getElementById('editBuyPriceWrapper');
+      const priceInput = document.getElementById('buy_price');
+      function syncPriceField() {
+        const isBonus = sel && sel.value === 'Bonus';
+        if (wrap) wrap.classList.toggle('field-hidden', isBonus);
+        if (priceInput) {
+          priceInput.required = !isBonus;
+          if (isBonus) priceInput.value = '0';
+        }
+      }
+      if (sel) {
+        sel.addEventListener('change', syncPriceField);
+        syncPriceField();
+      }
+    })();
+  </script>
+</body>
+</html>

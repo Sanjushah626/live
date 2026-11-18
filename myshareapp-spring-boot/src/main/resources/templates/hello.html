@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyShareApp — NEPSE Market Dashboard</title>
+  <meta name="description" content="NEPSE live stock market dashboard, portfolio & P/L tracker, news portal, and admin management console powered by YONEPSE API.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+</head>
+<body>
+  <div th:replace="~{fragments/public-layout :: header('home')}"></div>
+
+  <main class="container-main">
+    <section class="ticker-strip" id="heroTickerStrip" aria-label="Key NEPSE Indices">
+      <div class="ticker-card"><div class="ticker-label">NEPSE Index</div><div class="ticker-value">Loading...</div><div class="ticker-meta">&nbsp;</div></div>
+      <div class="ticker-card"><div class="ticker-label">Sensitive Index</div><div class="ticker-value">Loading...</div><div class="ticker-meta">&nbsp;</div></div>
+      <div class="ticker-card"><div class="ticker-label">Float Index</div><div class="ticker-value">Loading...</div><div class="ticker-meta">&nbsp;</div></div>
+      <div class="ticker-card"><div class="ticker-label">Sensitive Float Index</div><div class="ticker-value">Loading...</div><div class="ticker-meta">&nbsp;</div></div>
+    </section>
+
+    <section class="grid" aria-label="Market overview">
+      <div class="left-column">
+        <div class="card">
+          <div class="card-head-row">
+            <h2 class="section-title">NEPSE Index Chart</h2>
+            <span class="section-subtitle">Powered by YONEPSE</span>
+          </div>
+          <div class="chart-area" id="chart"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head-row">
+            <h2 class="section-title">Most Active Scrips</h2>
+            <div class="tab-pills">
+              <button type="button" class="tab-pill active" data-traded-tab="volume">Top Volume</button>
+              <button type="button" class="tab-pill" data-traded-tab="turnover">Top Turnover</button>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table class="market-mini-table" id="traded">
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Company Name</th>
+                  <th id="tradedMetricHeader">Volume</th>
+                  <th>LTP</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:24px;">Loading active scrips...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="movers-column">
+        <div class="card">
+          <div class="card-head-row">
+            <h2 class="section-title">Top 5 Gainers</h2>
+            <a href="/market.html" style="font-size:12.5px;font-weight:600;color:var(--accent);text-decoration:none;">View Market &rarr;</a>
+          </div>
+          <div class="table-scroll">
+            <table class="market-mini-table" id="gainersTable">
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Company Name</th>
+                  <th>LTP</th>
+                  <th>Change</th>
+                  <th>% Change</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:20px;">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head-row">
+            <h2 class="section-title">Top 5 Losers</h2>
+            <a href="/market.html" style="font-size:12.5px;font-weight:600;color:var(--accent);text-decoration:none;">View Market &rarr;</a>
+          </div>
+          <div class="table-scroll">
+            <table class="market-mini-table" id="losersTable">
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Company Name</th>
+                  <th>LTP</th>
+                  <th>Change</th>
+                  <th>% Change</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:20px;">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="main-index-heading">
+      <h2 class="section-title" id="main-index-heading">
+        <span>Main Indices</span>
+        <span class="section-subtitle">Daily high / low range</span>
+      </h2>
+      <div class="index-box" id="main-index">
+        <div class="index-card"><h3>NEPSE Index</h3><div class="index-value">Loading...</div></div>
+        <div class="index-card"><h3>Sensitive Index</h3><div class="index-value">Loading...</div></div>
+      </div>
+    </section>
+
+    <section aria-labelledby="sub-index-heading">
+      <h2 class="section-title" id="sub-index-heading">
+        <span>Sector Performance</span>
+        <span class="section-subtitle">Live sector breadth &amp; average change</span>
+      </h2>
+      <div class="index-box" id="sub-index">
+        <div class="index-card"><h3>Banking SubIndex</h3><div class="index-value">Loading...</div></div>
+        <div class="index-card"><h3>HydroPower Index</h3><div class="index-value">Loading...</div></div>
+        <div class="index-card"><h3>Finance Index</h3><div class="index-value">Loading...</div></div>
+        <div class="index-card"><h3>Hotels And Tourism</h3><div class="index-value">Loading...</div></div>
+      </div>
+    </section>
+
+    <section aria-labelledby="market-summary-heading">
+      <h2 class="section-title" id="market-summary-heading">
+        <span>Market Summary</span>
+        <span class="section-subtitle">Latest NEPSE session totals</span>
+      </h2>
+      <div class="index-box" id="market-summary">
+        <div class="index-card"><h3>Total Turnover</h3><div class="index-value">Loading...</div></div>
+        <div class="index-card"><h3>Total Traded Shares</h3><div class="index-value">Loading...</div></div>
+        <div class="index-card"><h3>Total Transactions</h3><div class="index-value">Loading...</div></div>
+        <div class="index-card"><h3>Total Scrips Traded</h3><div class="index-value">Loading...</div></div>
+      </div>
+    </section>
+
+    <section aria-labelledby="top-brokers-heading" style="margin-top:26px;">
+      <div class="card">
+        <div class="card-head-row">
+          <div>
+            <h2 class="section-title" id="top-brokers-heading">Top Brokers (Volume &amp; Turnover)</h2>
+            <span class="section-subtitle" id="topBrokersSummary">Loading NEPSE member broker activity...</span>
+          </div>
+          <a href="/market.html?tab=brokers" style="font-size:12.5px;font-weight:600;color:var(--accent);text-decoration:none;">Explore All Brokers &rarr;</a>
+        </div>
+        <div class="table-scroll">
+          <table class="market-mini-table" id="topBrokersTable">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Code</th>
+                <th style="text-align:left;">Broker Name</th>
+                <th>Total Volume</th>
+                <th>Buy / Sell Turnover</th>
+                <th>Total Turnover</th>
+                <th>Top Stock</th>
+                <th>Rating</th>
+              </tr>
+            </thead>
+            <tbody id="topBrokersBody">
+              <tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:24px;">Loading top brokers...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div th:replace="~{fragments/public-layout :: footer}"></div>
+  <script src="/script.js"></script>
+</body>
+</html>

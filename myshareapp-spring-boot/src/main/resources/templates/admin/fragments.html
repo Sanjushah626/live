@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="adminLayout(pageTitle, currentPage, adminUsername, content)">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="|${pageTitle} — MyShareApp Admin|">Admin — MyShareApp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/styles.css">
+  <script>
+    try {
+      document.documentElement.dataset.theme = localStorage.getItem('myshareapp-theme') === 'dark' ? 'dark' : 'light';
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+  <div class="admin-wrapper">
+    <aside id="sidebar" class="sidebar">
+      <a href="/dashboard.php" class="sidebar-brand">
+        <span class="sidebar-brand-icon"><i class="fa-solid fa-chart-line"></i></span>
+        <span class="brand-text">MyShareAdmin</span>
+      </a>
+      <nav class="sidebar-nav" aria-label="Admin sidebar">
+        <div class="sidebar-section-label">Management</div>
+        <ul>
+          <li><a href="/dashboard.php" class="sidebar-link" th:classappend="${currentPage == 'dashboard.php'} ? 'active' : ''"><i class="fa-solid fa-gauge-high"></i><span class="link-text">Dashboard</span></a></li>
+          <li><a href="/users.php" class="sidebar-link" th:classappend="${currentPage == 'users.php'} ? 'active' : ''"><i class="fa-solid fa-users"></i><span class="link-text">Users</span></a></li>
+          <li><a href="/newss.php" class="sidebar-link" th:classappend="${currentPage == 'newss.php' or currentPage == 'add_news.php' or currentPage == 'edit_news.php'} ? 'active' : ''"><i class="fa-solid fa-newspaper"></i><span class="link-text">News</span></a></li>
+          <li><a href="/contacts.php" class="sidebar-link" th:classappend="${currentPage == 'contacts.php' or currentPage == 'view_contact.php'} ? 'active' : ''"><i class="fa-solid fa-envelope"></i><span class="link-text">Contacts</span></a></li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="/hello.html" class="sidebar-link"><i class="fa-solid fa-globe"></i><span class="link-text">Public Market</span></a>
+        <a href="/logout.php" class="sidebar-link danger"><i class="fa-solid fa-right-from-bracket"></i><span class="link-text">Logout</span></a>
+      </div>
+    </aside>
+    <div id="mainContent" class="main-content">
+      <header class="topnavbar">
+        <div class="topnavbar-left">
+          <button type="button" id="navbarMenuBtn" class="navbar-menu-btn" aria-label="Open menu"><i class="fa-solid fa-bars"></i></button>
+          <button type="button" id="sidebarToggleBtn" class="sidebar-toggle-btn" aria-label="Toggle sidebar"><i class="fa-solid fa-angles-left"></i></button>
+          <span class="topnavbar-title" th:text="${pageTitle}">Dashboard</span>
+        </div>
+        <div class="topnavbar-right">
+          <button type="button" id="themeToggleBtn" class="theme-toggle-btn" aria-label="Toggle Dark or Bright mode">
+            <i class="fa-solid fa-moon"></i><span>Dark</span>
+          </button>
+          <a href="/hello.html" class="navbar-site-link"><i class="fa-solid fa-arrow-up-right-from-square"></i><span>View Site</span></a>
+          <div class="navbar-user"><i class="fa-solid fa-user-shield"></i><span th:text="|@${adminUsername}|">@admin</span></div>
+          <a href="/logout.php" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a>
+        </div>
+      </header>
+      <main class="page-content">
+        <th:block th:replace="${content}" />
+      </main>
+    </div>
+  </div>
+  <div id="deleteModal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <div class="modal-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+      <h3>Confirm Deletion</h3>
+      <p id="deleteModalText">This action cannot be undone. Are you sure you want to delete this item?</p>
+      <div class="modal-actions">
+        <button type="button" id="deleteModalCancel" class="btn btn-outline">Cancel</button>
+        <a href="#" id="deleteModalConfirm" class="btn btn-danger">Delete</a>
+      </div>
+    </div>
+  </div>
+  <script src="/scripts.js"></script>
+</body>
+</html>

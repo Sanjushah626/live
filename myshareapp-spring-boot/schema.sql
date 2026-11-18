@@ -1,0 +1,73 @@
+CREATE DATABASE IF NOT EXISTS myshareapp CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE myshareapp;
+
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(100) NOT NULL UNIQUE,
+  email VARCHAR(150) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  role VARCHAR(20) NOT NULL DEFAULT 'user',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS portfolios (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  portfolio_name VARCHAR(100) NOT NULL,
+  portfolio_type VARCHAR(20) NOT NULL DEFAULT 'personal',
+  total_sold_value DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+  total_realized_profit DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+  CONSTRAINT fk_portfolios_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS stocks (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  portfolio_id INT NOT NULL,
+  symbol VARCHAR(30) NOT NULL,
+  purchase_type VARCHAR(50) NOT NULL DEFAULT 'Secondary',
+  quantity INT NOT NULL DEFAULT 0,
+  buy_price DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+  buy_date DATE NULL,
+  sold_quantity INT NOT NULL DEFAULT 0,
+  sold_value DECIMAL(14,2) NOT NULL DEFAULT 0.00,
+  sold_units INT NOT NULL DEFAULT 0,
+  CONSTRAINT fk_stocks_portfolio FOREIGN KEY (portfolio_id) REFERENCES portfolios(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS sold_stocks (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  portfolio_id INT NOT NULL,
+  stock_id INT NULL,
+  symbol VARCHAR(30) NOT NULL,
+  quantity_sold INT NOT NULL,
+  buy_price DECIMAL(12,2) NOT NULL,
+  sell_price DECIMAL(12,2) NOT NULL,
+  investment_cost DECIMAL(14,2) NOT NULL,
+  sale_value DECIMAL(14,2) NOT NULL,
+  broker_charge DECIMAL(12,2) NOT NULL,
+  sebon_charge DECIMAL(12,2) NOT NULL,
+  dp_charge DECIMAL(12,2) NOT NULL,
+  capital_gain_tax DECIMAL(12,2) NOT NULL,
+  net_profit DECIMAL(14,2) NOT NULL,
+  sell_date DATE NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_sold_portfolio FOREIGN KEY (portfolio_id) REFERENCES portfolios(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS news (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NULL,
+  title VARCHAR(255) NOT NULL,
+  description TEXT NOT NULL,
+  image VARCHAR(255) NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS contact (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  email VARCHAR(150) NOT NULL,
+  subject VARCHAR(255) NULL,
+  message TEXT NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

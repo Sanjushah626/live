@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — MyShareApp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    body.auth-body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: radial-gradient(circle at top right, rgba(37, 99, 235, 0.08), transparent 45%),
+                  radial-gradient(circle at bottom left, rgba(22, 163, 74, 0.07), transparent 45%),
+                  var(--bg-app);
+    }
+    .auth-main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 36px 16px;
+    }
+    .auth-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 32px 30px;
+      box-shadow: var(--shadow-md);
+    }
+    .auth-brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      text-decoration: none;
+    }
+    .auth-card h2 {
+      margin: 0 0 6px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+    .auth-subtitle {
+      text-align: center;
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      margin: 0 0 22px;
+    }
+    .auth-alert {
+      background: var(--red-soft);
+      color: var(--red);
+      border: 1px solid rgba(220, 38, 38, 0.25);
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .auth-field {
+      margin-bottom: 15px;
+    }
+    .auth-field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+    .password-wrap {
+      position: relative;
+    }
+    .auth-input {
+      width: 100%;
+      padding: 11px 13px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      color: var(--text-primary);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+    .password-wrap .auth-input {
+      padding-right: 64px;
+    }
+    .auth-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: var(--bg-surface);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    .pw-toggle {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 4px 6px;
+    }
+    .auth-submit {
+      width: 100%;
+      margin-top: 6px;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      font-size: 14.5px;
+      cursor: pointer;
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+    .auth-submit:hover {
+      background: var(--accent-dark);
+      transform: translateY(-1px);
+    }
+    .auth-links {
+      margin-top: 18px;
+      text-align: center;
+      font-size: 13.5px;
+      color: var(--text-secondary);
+    }
+    .auth-links a {
+      color: var(--accent);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .auth-links a:hover {
+      text-decoration: underline;
+    }
+    .auth-back {
+      display: block;
+      margin-top: 10px;
+      font-size: 12.5px;
+      color: var(--text-muted) !important;
+    }
+  </style>
+</head>
+<body class="auth-body">
+  <div th:replace="~{fragments/public-layout :: header('login')}"></div>
+
+  <main class="auth-main">
+    <div class="auth-card">
+      <a href="/hello.html" class="auth-brand">
+        <span class="brand-logo">M</span>
+        <span class="brand-name">MyShare<span>App</span></span>
+      </a>
+      <h2>Welcome Back</h2>
+      <p class="auth-subtitle">Sign in to manage your NEPSE portfolios and track live P&amp;L.</p>
+
+      <th:block th:if="${error != null and !error.isEmpty()}">
+        <div class="auth-alert"><span th:text="${error}">Error</span></div>
+      </th:block>
+
+      <form action="/login.php" method="POST">
+        <div class="auth-field">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" class="auth-input" placeholder="Enter your username" required autocomplete="username" autofocus>
+        </div>
+
+        <div class="auth-field">
+          <label for="password">Password</label>
+          <div class="password-wrap">
+            <input type="password" id="password" name="password" class="auth-input" placeholder="Enter your password" required autocomplete="current-password">
+            <button type="button" class="pw-toggle" id="toggleLoginPw">Show</button>
+          </div>
+        </div>
+
+        <button type="submit" class="auth-submit">Sign In</button>
+      </form>
+
+      <div class="auth-links">
+        Don't have an account? <a href="/signup.php">Create one</a>
+        <a href="/hello.html" class="auth-back">&larr; Back to Market Dashboard</a>
+      </div>
+    </div>
+  </main>
+
+  <div th:replace="~{fragments/public-layout :: footer}"></div>
+  <script src="/script.js"></script>
+  <script>
+    (function () {
+      const btn = document.getElementById('toggleLoginPw');
+      const input = document.getElementById('password');
+      if (btn && input) {
+        btn.addEventListener('click', function () {
+          const isPw = input.type === 'password';
+          input.type = isPw ? 'text' : 'password';
+          btn.textContent = isPw ? 'Hide' : 'Show';
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

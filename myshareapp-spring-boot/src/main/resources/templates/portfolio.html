@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio — MyShareApp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <style>
+    .overview-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 4px 0 22px; }
+    .overview-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; box-shadow: var(--shadow-xs); }
+    .overview-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 6px; }
+    .overview-val { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--text-primary); }
+    .overview-val.positive { color: var(--green); }
+    .overview-val.negative { color: var(--red); }
+    .portfolio-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 6px 0 18px; }
+    .toolbar-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    #addPortfolioBtn { padding: 10px 20px; background: var(--accent); color: #fff; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 14px; }
+    .download-portfolio-btn { padding: 9px 18px; background: var(--bg-surface); color: var(--accent); border: 1px solid rgba(37,99,235,0.35); border-radius: 10px; font-weight: 700; font-size: 13.5px; text-decoration: none; }
+    .banner-msg { padding: 12px 16px; border-radius: 10px; font-size: 13.5px; font-weight: 600; margin-bottom: 16px; }
+    .banner-msg.success { background: var(--green-soft); color: var(--green); }
+    .banner-msg.error { background: var(--red-soft); color: var(--red); }
+    h2.page-title { color: var(--text-primary); font-weight: 800; font-size: 22px; margin: 0; }
+    .portfolio-card { background: var(--bg-surface); margin: 0 0 20px; border-radius: 16px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); cursor: pointer; overflow: hidden; }
+    .portfolio-card-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px 14px; border-bottom: 1px solid var(--border-soft); gap: 12px; flex-wrap: wrap; }
+    .portfolio-title-group { display: flex; align-items: center; gap: 10px; }
+    .chevron-ind { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 7px; background: var(--bg-elevated); font-size: 12px; transition: transform 0.2s ease; }
+    .portfolio-card.is-expanded .chevron-ind { transform: rotate(90deg); color: var(--accent); background: var(--accent-soft); }
+    .portfolio-card-header h3 { margin: 0; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    .ptype-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+    .portfolio-actions { display: flex; align-items: center; gap: 8px; }
+    .portfolio-actions a { font-size: 12.5px; font-weight: 600; color: var(--text-secondary); text-decoration: none; padding: 6px 11px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-surface); }
+    .portfolio-card .metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 16px 24px; }
+    .metrics div { background: var(--bg-elevated); padding: 12px 14px; border-radius: 10px; }
+    .metrics div strong { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+    .metric-value { font-size: 14.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .metric-value.positive { color: var(--green); }
+    .metric-value.negative { color: var(--red); }
+    .portfolio-card-footer { padding: 0 24px 16px; display: flex; align-items: center; justify-content: space-between; }
+    .expand-hint { font-size: 12px; color: var(--text-muted); }
+    .add-stock-btn { padding: 8px 16px; background: var(--accent-soft); color: var(--accent); border: 1px solid rgba(37,99,235,0.25); border-radius: 9px; cursor: pointer; font-weight: 700; font-size: 13px; }
+    .stocks-list { display: none; border-top: 1px solid var(--border); padding: 20px 24px; background: var(--bg-app); }
+    .stocks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 16px; }
+    .stock-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; }
+    .stock-card.sold-out-row { opacity: 0.55; }
+    .stock-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border-soft); }
+    .stock-symbol { font-weight: 800; font-size: 19px; }
+    .type-badge { padding: 3px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+    .type-badge.ipo { background: var(--green-soft); color: var(--green); }
+    .type-badge.secondary { background: var(--accent-soft); color: var(--accent); }
+    .type-badge.bonus { background: var(--amber-soft); color: var(--amber); }
+    .stock-price-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; }
+    .stock-ltp { font-size: 26px; font-weight: 800; }
+    .stock-pct-change { font-size: 13px; font-weight: 700; padding: 3px 9px; border-radius: 7px; }
+    .stock-pct-change.up { background: var(--green-soft); color: var(--green); }
+    .stock-pct-change.down { background: var(--red-soft); color: var(--red); }
+    .stock-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+    .stat-item { background: var(--bg-elevated); border-radius: 10px; padding: 10px 12px; }
+    .stat-label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; }
+    .stat-value { font-size: 14px; font-weight: 700; }
+    .stock-profit-bar { display: flex; align-items: center; justify-content: space-between; background: var(--bg-elevated); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; border-left: 4px solid var(--border); }
+    .stock-profit-bar.positive { border-left-color: var(--green); }
+    .stock-profit-bar.negative { border-left-color: var(--red); }
+    .profit-bar-label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+    .profit-bar-value { font-size: 18px; font-weight: 800; }
+    .profit-bar-percent { font-size: 13.5px; font-weight: 700; padding: 4px 10px; border-radius: 8px; }
+    .stock-sold-strip { display: flex; justify-content: space-between; gap: 10px; padding: 8px 12px; background: var(--bg-app); border-radius: 9px; margin-bottom: 12px; font-size: 12px; }
+    .sold-label { display: block; font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+    .stock-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .stock-actions a, .stock-actions button { flex: 1; text-align: center; padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none; cursor: pointer; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-secondary); }
+    .stock-actions .btn-depth { background: var(--accent-soft); color: var(--accent); }
+    .stock-actions .btn-sell { background: var(--red-soft); color: var(--red); }
+    .stocks-empty { color: var(--text-muted); padding: 40px 24px; text-align: center; background: var(--bg-surface); border-radius: 14px; border: 2px dashed var(--border); }
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.55); }
+    .modal-content { background: var(--bg-surface); margin: 6% auto; padding: 26px 28px; width: 440px; max-width: 92%; max-height: 90vh; overflow-y: auto; border-radius: 16px; }
+    .close { float: right; font-size: 24px; font-weight: 700; cursor: pointer; color: var(--text-muted); }
+    .modal-content form label { display: block; margin-top: 12px; font-weight: 600; font-size: 13px; }
+    .modal-content form input, .modal-content form select { width: 100%; padding: 10px 12px; margin-top: 5px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 9px; }
+    .field-hidden { display: none !important; }
+    .modal-content form button { margin-top: 18px; width: 100%; padding: 11px; background: var(--accent); color: #fff; border: none; border-radius: 9px; cursor: pointer; font-weight: 700; }
+    #sellStockModal .modal-content form button { background: var(--red); }
+    .depth-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 13px; }
+    .depth-table th { padding: 10px 8px; font-size: 10.5px; text-transform: uppercase; text-align: center; }
+    .depth-table th.buy-header { background: var(--green-soft); color: var(--green); }
+    .depth-table th.sell-header { background: var(--red-soft); color: var(--red); }
+    .depth-table td { padding: 9px 8px; text-align: center; border-bottom: 1px solid var(--border-soft); font-weight: 600; }
+    .depth-actions { display: flex; gap: 10px; margin-top: 14px; }
+    .depth-actions a { flex: 1; padding: 10px; border-radius: 9px; font-weight: 700; text-align: center; text-decoration: none; }
+    .btn-depth-buy { background: var(--green-soft); color: var(--green); }
+    .btn-depth-sell { background: var(--red-soft); color: var(--red); }
+    @media (max-width: 900px) { .overview-strip { grid-template-columns: repeat(2, 1fr); } .portfolio-card .metrics { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 600px) { .portfolio-card .metrics { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+</head>
+<body>
+  <div th:replace="~{fragments/public-layout :: header('portfolio')}"></div>
+  <main class="container-main">
+    <div th:if="${status == 'portfolio_deleted'}" class="banner-msg success">Portfolio deleted successfully.</div>
+    <div th:if="${error != null and !error.isEmpty()}" class="banner-msg error" th:text="${error == 'duplicate_portfolio' ? 'You already have a portfolio with that name.' : error}">Error</div>
+
+    <div class="portfolio-toolbar">
+      <h2 class="page-title" th:text="|${username}'s Portfolios|">Portfolios</h2>
+      <div class="toolbar-left">
+        <button id="addPortfolioBtn">+ Add Portfolio</button>
+        <a th:if="${!#lists.isEmpty(portfolios)}" href="/export_portfolio.php" class="download-portfolio-btn">Download All (CSV)</a>
+      </div>
+    </div>
+
+    <div th:if="${!#lists.isEmpty(portfolios)}" class="overview-strip">
+      <div class="overview-card"><div class="overview-label">Portfolios</div><div class="overview-val" th:text="${#lists.size(portfolios)}">0</div></div>
+      <div class="overview-card"><div class="overview-label">Total Investment</div><div class="overview-val" id="summaryTotalInvestment">Rs. 0.00</div></div>
+      <div class="overview-card"><div class="overview-label">Current Market Value</div><div class="overview-val" id="summaryCurrentValue">Rs. 0.00</div></div>
+      <div class="overview-card">
+        <div class="overview-label">Unrealized / Realized P&amp;L</div>
+        <div class="overview-val" id="summaryUnrealizedPL">Rs. 0.00</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">Realized: <span id="summaryRealizedPL">Rs. 0.00</span></div>
+      </div>
+    </div>
+    <div th:if="${#lists.isEmpty(portfolios)}" class="stocks-empty">No portfolios yet. Click "+ Add Portfolio" to create your first portfolio.</div>
+
+    <div class="portfolio-card" th:each="p : ${portfolios}"
+         th:attr="data-id=${p['id']}, data-type=${#strings.toLowerCase(p['portfolioType'])}, data-realized=${p['totalRealizedProfit']}" onclick="toggleStocks(this.dataset.id)">
+      <div class="portfolio-card-header">
+        <div class="portfolio-title-group">
+          <span class="chevron-ind">&#9654;</span>
+          <h3><span th:text="${p['portfolioName']}">Portfolio</span> <span class="ptype-badge" th:text="${p['portfolioType']}">personal</span></h3>
+        </div>
+        <div class="portfolio-actions">
+          <a th:href="@{/export_portfolio.php(id=${p['id']})}" onclick="event.stopPropagation();">Download CSV</a>
+          <a th:href="@{/edit_portfolio.php(id=${p['id']})}" onclick="event.stopPropagation();">Edit</a>
+          <a th:href="@{/delete_portfolio.php(id=${p['id']})}" onclick="event.stopPropagation();">Delete</a>
+        </div>
+      </div>
+      <div class="metrics">
+        <div><strong>Total Investment</strong><span class="metric-value neutral" th:text="'Rs. ' + ${@fmt.money(p['totalInvestment'])}">Rs. 0.00</span></div>
+        <div><strong>Profit / Loss</strong><span class="metric-value neutral">Rs. 0.00</span></div>
+        <div><strong>Current Units</strong><span class="metric-value neutral" th:text="${p['totalUnits']}">0</span></div>
+        <div><strong>Current Value</strong><span class="metric-value neutral">Rs. 0.00</span></div>
+        <div><strong>Receivable Amount</strong><span class="metric-value neutral">Rs. 0.00</span></div>
+        <div><strong>Total Profit/Loss %</strong><span class="metric-value neutral">0.00%</span></div>
+        <div><strong>Today's Gain/Loss</strong><span class="metric-value neutral">Rs. 0.00</span></div>
+        <div><strong>Today's Gain/Loss %</strong><span class="metric-value neutral">0.00%</span></div>
+        <div><strong>Sold Value</strong><span class="metric-value neutral" th:text="'Rs. ' + ${@fmt.money(p['totalSoldValue'])}">Rs. 0.00</span></div>
+        <div><strong th:text="${p['realizedLabel']}">Realized P/L</strong><span class="metric-value" th:classappend="${p['realizedClass']}" th:text="'Rs. ' + ${@fmt.money(p['totalRealizedAbs'])}">Rs. 0.00</span></div>
+      </div>
+      <div class="portfolio-card-footer">
+        <span class="expand-hint" th:text="|${#lists.size(p['stocks'])} holdings — click card to expand|">holdings</span>
+        <button type="button" class="add-stock-btn" onclick="event.stopPropagation();">+ Add Stock</button>
+      </div>
+      <div th:id="'stocks-' + ${p['id']}" class="stocks-list" style="display:none;" onclick="event.stopPropagation();">
+        <div th:if="${!#lists.isEmpty(p['stocks'])}" class="stocks-grid">
+          <div class="stock-card" th:each="s : ${p['stocks']}" th:classappend="${s['soldOut']} ? 'sold-out-row' : ''"
+               th:attr="data-id=${s['id']}, data-quantity=${s['quantity']}, data-buyprice=${s['buyPrice']}, data-buydate=${s['buyDate']}, data-purchasetype=${s['purchaseTypeLower']}">
+            <div class="stock-card-header">
+              <span class="stock-symbol" th:text="${s['symbol']}">SYM</span>
+              <span class="type-badge" th:classappend="${s['purchaseTypeLower']}" th:text="${s['purchaseType']}">Secondary</span>
+            </div>
+            <div class="stock-price-row">
+              <span class="stock-ltp" th:classappend="${s['soldOut']} ? '' : 'loading'" th:attr="data-symbol=${s['symbol']}" th:text="${s['soldOut']} ? '-' : 'Loading...'">Loading...</span>
+              <span class="stock-pct-change up">0.00%</span>
+            </div>
+            <div class="stock-stats">
+              <div class="stat-item"><span class="stat-label">Quantity</span><span class="stat-value" th:text="${s['quantity']}">0</span></div>
+              <div class="stat-item"><span class="stat-label">Avg Buy Price</span><span class="stat-value" th:text="'Rs. ' + ${@fmt.money(s['buyPrice'])}">Rs. 0.00</span></div>
+              <div class="stat-item"><span class="stat-label">Investment</span><span class="stat-value investment" th:text="${s['soldOut'] ? 'Rs. 0.00' : 'Rs. ' + @fmt.money(s['investment'])}">Rs. 0.00</span></div>
+              <div class="stat-item"><span class="stat-label">Current Value</span><span class="stat-value current-value">Rs. 0.00</span></div>
+              <div class="stat-item"><span class="stat-label">Receivable</span><span class="stat-value receivable-amount">Rs. 0.00</span></div>
+              <div class="stat-item"><span class="stat-label">Today's Gain</span><span class="stat-value todays-gain positive">Rs. 0.00</span></div>
+            </div>
+            <div class="stock-profit-bar positive">
+              <div><span class="profit-bar-label">Net Profit / Loss</span><span class="profit-bar-value profit-loss positive">Rs. 0.00</span></div>
+              <div><span class="profit-bar-percent profit-percent positive">0.00%</span></div>
+            </div>
+            <div class="stock-sold-strip">
+              <div><span class="sold-label">Sold Units</span><span class="sold-value" th:text="${s['soldUnits']}">0</span></div>
+              <div><span class="sold-label">Sold Value</span><span class="sold-value" th:text="'Rs. ' + ${@fmt.money(s['soldValue'])}">Rs. 0.00</span></div>
+              <div><span class="sold-label">Purchase Date</span><span class="sold-value" th:text="${(s['buyDate'] != null and !s['buyDate'].isEmpty()) ? s['buyDate'] : '-'}">-</span></div>
+            </div>
+            <div class="stock-actions">
+              <button type="button" class="btn-depth" th:attr="data-symbol=${s['symbol']}" onclick="event.stopPropagation(); openDepthModal(this.dataset.symbol);">Depth</button>
+              <a th:if="${!s['soldOut']}" href="#" class="btn-sell" th:attr="data-id=${s['id']}, data-symbol=${s['symbol']}, data-qty=${s['quantity']}, data-buydate=${s['buyDate']}" onclick="event.stopPropagation(); openSellModal(this.dataset.id, this.dataset.symbol, Number(this.dataset.qty), this.dataset.buydate); return false;">Sell</a>
+              <a th:href="@{/edit_stock.php(id=${s['id']})}" class="btn-edit" onclick="event.stopPropagation();">Edit</a>
+              <a th:href="@{/delete_stock.php(id=${s['id']})}" class="btn-delete" onclick="event.stopPropagation();">Delete</a>
+            </div>
+          </div>
+        </div>
+        <div th:if="${#lists.isEmpty(p['stocks'])}" class="stocks-empty">No stocks added yet. Click "+ Add Stock" to get started.</div>
+      </div>
+    </div>
+  </main>
+
+  <div id="portfolioModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closePortfolio">&times;</span>
+      <h2>Create Portfolio</h2>
+      <form action="/add_portfolio.php" method="POST">
+        <label for="portfolio_name">Portfolio Name:</label><input type="text" id="portfolio_name" name="portfolio_name" required>
+        <label for="portfolio_type">Portfolio Type:</label>
+        <select id="portfolio_type" name="portfolio_type" required><option value="personal">Personal</option><option value="institutional">Institutional</option></select>
+        <button type="submit">Save Portfolio</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="addStockModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeStock">&times;</span>
+      <h2>Add Stock</h2>
+      <form action="/add_stock.php" method="POST">
+        <input type="hidden" name="portfolio_id" id="portfolio_id">
+        <label for="symbol">Symbol:</label><input type="text" id="symbol" name="symbol" list="symbolList" required autocomplete="off" style="text-transform:uppercase;"><datalist id="symbolList"></datalist>
+        <label for="purchase_type">Transaction Type:</label>
+        <select id="purchase_type" name="purchase_type" required><option value="Secondary">Secondary Buy</option><option value="IPO">IPO</option><option value="Bonus">Bonus Share</option></select>
+        <small class="hint" id="typeHint"></small>
+        <label for="quantity">Quantity:</label><input type="number" id="quantity" name="quantity" min="1" required>
+        <div id="buyPriceField"><label for="buy_price">Buy Price (per share):</label><input type="number" step="0.01" id="buy_price" name="buy_price" required></div>
+        <label for="buy_date">Buy Date:</label><input type="date" id="buy_date" name="buy_date" th:attr="max=${todayDate}">
+        <button type="submit">Save Stock</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="depthModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeDepthModal()">&times;</span>
+      <h2>Market Depth &mdash; <span id="depthSymbol" style="color:var(--accent)">SYMBOL</span></h2>
+      <div id="depthLoading" class="depth-loading">Loading market depth...</div>
+      <div id="depthTableWrap" style="display:none;">
+        <table class="depth-table">
+          <thead><tr><th colspan="3" class="buy-header">TOP 5 BUY</th><th colspan="3" class="sell-header">TOP 5 SELL</th></tr><tr><th>Orders</th><th>Qty</th><th>Price</th><th>Price</th><th>Qty</th><th>Orders</th></tr></thead>
+          <tbody id="depthTableBody"></tbody>
+          <tfoot><tr class="total-row"><td colspan="3">Total Buy Qty: <span id="totalBuyQty">0</span></td><td colspan="3">Total Sell Qty: <span id="totalSellQty">0</span></td></tr></tfoot>
+        </table>
+        <div class="depth-actions">
+          <a href="#" class="btn-depth-buy" id="depthBuyLink" onclick="handleDepthBuy();" target="_blank" rel="noopener noreferrer">Buy <span id="buySymbol">SYMBOL</span></a>
+          <a href="#" class="btn-depth-sell" id="depthSellLink" onclick="handleDepthSell();" target="_blank" rel="noopener noreferrer">Sell <span id="sellSymbol">SYMBOL</span></a>
+        </div>
+      </div>
+      <div id="depthClosed" class="depth-closed" style="display:none;">Market depth unavailable right now.</div>
+    </div>
+  </div>
+
+  <div id="sellStockModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeSell">&times;</span>
+      <h2>Sell Stock</h2>
+      <div id="sellDateError" class="banner-msg error" style="display:none;margin-bottom:10px;"></div>
+      <form action="/sell_stock.php" method="POST">
+        <input type="hidden" name="stock_id" id="sell_stock_id">
+        <label for="sell_symbol">Symbol:</label><input type="text" id="sell_symbol" disabled>
+        <label for="sell_available">Available Units:</label><input type="text" id="sell_available" disabled>
+        <label for="sell_quantity">Quantity to Sell:</label><input type="number" name="sell_quantity" id="sell_quantity" min="1" required>
+        <label for="sell_price">Sell Price (per share):</label><input type="number" step="0.01" name="sell_price" id="sell_price" required>
+        <label for="sell_date">Sell Date:</label><input type="date" name="sell_date" id="sell_date">
+        <button type="submit">Confirm Sell</button>
+      </form>
+    </div>
+  </div>
+
+  <div th:replace="~{fragments/public-layout :: footer}"></div>
+  <script src="/script.js"></script>
+  <script src="/1.js"></script>
+</body>
+</html>

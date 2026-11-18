@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/fragments :: adminLayout(${pageTitle}, ${currentPage}, ${adminUsername}, ~{::section#adminPageBody})}">
+<body>
+<section id="adminPageBody">
+  <div class="page-header">
+    <div><h1>Admin Dashboard</h1><p>Overview of registered investors, portfolios, market news, and user inquiries.</p></div>
+    <div class="action-buttons">
+      <a href="/add_news.php" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Publish News</a>
+      <a href="/market.html" class="btn btn-outline"><i class="fa-solid fa-chart-candlestick"></i> Live NEPSE</a>
+    </div>
+  </div>
+
+  <section class="stats-grid">
+    <div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-users"></i></div><div class="stat-info"><h3 th:text="${totalUsers}">0</h3><p>Total Users</p></div></div>
+    <div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-briefcase"></i></div><div class="stat-info"><h3 th:text="${totalPortfolios}">0</h3><p>Active Portfolios</p></div></div>
+    <div class="stat-card"><div class="stat-icon orange"><i class="fa-solid fa-newspaper"></i></div><div class="stat-info"><h3 th:text="${totalNews}">0</h3><p>Published News</p></div></div>
+    <div class="stat-card"><div class="stat-icon purple"><i class="fa-solid fa-envelope-open-text"></i></div><div class="stat-info"><h3 th:text="${totalContacts}">0</h3><p>Contact Messages</p></div></div>
+  </section>
+
+  <div class="dashboard-columns">
+    <section class="card">
+      <div class="card-header"><h2>Recent Users</h2><a href="/users.php" class="btn btn-outline btn-sm">View All</a></div>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead><tr><th>User</th><th>Role</th><th>Portfolios</th><th>Joined</th></tr></thead>
+          <tbody>
+            <tr th:each="u : ${recentUsers}">
+              <td><div class="table-avatar"><span class="avatar-circle" th:text="${@fmt.initial(u['username'])}">U</span><div><div style="font-weight:600;" th:text="${u['username']}">user</div><div style="font-size:0.78rem;color:var(--color-text-muted);" th:text="${u['email']}">email</div></div></div></td>
+              <td><span class="badge" th:classappend="${u['role'] == 'admin'} ? 'badge-admin' : 'badge-user'" th:text="${u['role']}">user</span></td>
+              <td><strong th:text="${u['portfolioCount']}">0</strong></td>
+              <td th:text="${@fmt.shortDate(u['createdAt'])}">-</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(recentUsers)}"><td colspan="4" class="no-data">No users registered yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header"><h2>Latest Contact Messages</h2><a href="/contacts.php" class="btn btn-outline btn-sm">View All</a></div>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead><tr><th>Sender</th><th>Subject</th><th>Received</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr th:each="c : ${latestContacts}">
+              <td><div style="font-weight:600;" th:text="${c.name}">name</div><div style="font-size:0.78rem;color:var(--color-text-muted);" th:text="${c.email}">email</div></td>
+              <td th:text="${(c.subject != null and !c.subject.isEmpty()) ? @fmt.truncate(c.subject, 36) : '(No subject)'}">-</td>
+              <td th:text="${@fmt.shortDate(c.createdAt)}">-</td>
+              <td><a th:href="@{/view_contact.php(id=${c.id})}" class="btn btn-outline btn-sm">Read</a></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(latestContacts)}"><td colspan="4" class="no-data">No contact messages yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card full-span">
+      <div class="card-header">
+        <h2>Latest Market News</h2>
+        <div class="action-buttons"><a href="/newss.php" class="btn btn-outline btn-sm">Manage All</a><a href="/add_news.php" class="btn btn-primary btn-sm">+ Add News</a></div>
+      </div>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead><tr><th>Thumbnail</th><th>Title &amp; Summary</th><th>Published</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr th:each="n : ${latestNews}">
+              <td><img th:if="${n.image != null and !n.image.isEmpty()}" th:src="@{'/uploads/news/' + ${n.image}}" alt="News" class="news-thumb"><span th:if="${n.image == null or n.image.isEmpty()}" class="badge badge-muted">No Image</span></td>
+              <td><div style="font-weight:700;" th:text="${n.title}">Title</div><div style="font-size:0.83rem;color:var(--color-text-secondary);" th:text="${@fmt.truncate(n.description, 100)}">Desc</div></td>
+              <td th:text="${@fmt.shortDate(n.createdAt)}">-</td>
+              <td><div class="action-buttons"><a th:href="@{/edit_news.php(id=${n.id})}" class="btn btn-outline btn-sm">Edit</a><a th:href="@{/delete_news.php(id=${n.id})}" class="btn btn-danger btn-sm js-delete-btn" th:attr="data-message='Delete article ' + ${n.title} + '?'">Delete</a></div></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(latestNews)}"><td colspan="4" class="no-data">No news articles published yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</section>
+</body>
+</html>

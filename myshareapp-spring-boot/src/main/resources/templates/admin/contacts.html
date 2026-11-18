@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/fragments :: adminLayout(${pageTitle}, ${currentPage}, ${adminUsername}, ~{::section#adminPageBody})}">
+<body>
+<section id="adminPageBody">
+  <div class="page-header">
+    <div><h1>Contact Messages</h1><p>Review inquiries and feedback submitted through the public contact form.</p></div>
+    <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="search-input" data-search-target="contactsTable" placeholder="Search sender, email, or subject..."></div>
+  </div>
+  <div th:if="${status == 'deleted'}" class="alert alert-success auto-dismiss">Contact message deleted successfully.</div>
+  <div class="card">
+    <div class="card-header"><h2 th:text="'Inbox (' + ${#lists.size(contacts)} + ')'">Inbox</h2></div>
+    <div class="table-responsive">
+      <table class="data-table" id="contactsTable">
+        <thead><tr><th>Sender</th><th>Email</th><th>Subject</th><th>Received</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr th:each="c : ${contacts}">
+            <td style="font-weight:600;" th:text="${c.name}">Name</td>
+            <td th:text="${c.email}">Email</td>
+            <td th:text="${(c.subject != null and !c.subject.isEmpty()) ? @fmt.truncate(c.subject, 50) : '(No subject)'}">-</td>
+            <td th:text="${@fmt.shortDate(c.createdAt)}">-</td>
+            <td><div class="action-buttons"><a th:href="@{/view_contact.php(id=${c.id})}" class="btn btn-outline btn-sm">View</a><a th:href="@{/delete_contact.php(id=${c.id})}" class="btn btn-danger btn-sm js-delete-btn" th:attr="data-message='Delete message from ' + ${c.name} + '?'">Delete</a></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+</body>
+</html>

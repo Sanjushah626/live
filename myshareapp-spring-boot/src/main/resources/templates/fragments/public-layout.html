@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+  <th:block th:fragment="header(activeNav)">
+    <script>
+      try {
+        document.documentElement.dataset.theme = localStorage.getItem('myshareapp-theme') === 'dark' ? 'dark' : 'light';
+      } catch (e) {}
+    </script>
+    <header class="site-header">
+      <div class="header-inner">
+        <a href="/hello.html" class="brand-link">
+          <span class="brand-logo">M</span>
+          <span class="brand-name">MyShare<span>App</span></span>
+        </a>
+
+        <button type="button" class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle navigation">&#9776;</button>
+
+        <nav class="main-nav" id="mainNav" aria-label="Main navigation">
+          <a href="/hello.html" th:classappend="${activeNav == 'home'} ? 'active' : ''">Home</a>
+          <a href="/market.html" th:classappend="${activeNav == 'market'} ? 'active' : ''">Market</a>
+          <a href="/portfolio.php" th:classappend="${activeNav == 'portfolio'} ? 'active' : ''">Portfolio</a>
+          <a href="/news.php" th:classappend="${activeNav == 'news'} ? 'active' : ''">News &amp; IPOs</a>
+          <a href="/contact.php" th:classappend="${activeNav == 'contact'} ? 'active' : ''">Contact Us</a>
+        </nav>
+
+        <div id="right-section">
+          <button type="button" id="themeToggleBtn" class="theme-toggle-btn" aria-label="Toggle Dark or Bright mode">
+            <span aria-hidden="true">&#127769;</span><span>Dark</span>
+          </button>
+          <div id="market-status" aria-live="polite">
+            <span class="dot closed"></span> Checking status...
+          </div>
+          <a th:if="${isAdmin}" href="/dashboard.php" class="admin-chip">Admin Panel</a>
+          <th:block th:if="${loggedIn and currentUser != null}">
+            <span class="nav-user-badge" th:text="|@${currentUser.username}|">@user</span>
+            <button class="login-btn logout" onclick="window.location.href='/logout.php'">Logout</button>
+          </th:block>
+          <button th:unless="${loggedIn and currentUser != null}" class="login-btn" onclick="window.location.href='/login.php'">Login</button>
+        </div>
+      </div>
+    </header>
+  </th:block>
+
+  <footer th:fragment="footer">
+    <div class="footer-content">
+      <p>&copy; 2026 MyShareApp. All rights reserved.</p>
+      <p>Live NEPSE data powered by <a href="https://shubhamnpk.github.io/yonepse/pages/docs.html" target="_blank" rel="noopener noreferrer">YONEPSE API</a> | For educational purposes only</p>
+      <nav class="footer-nav" aria-label="Footer navigation">
+        <a href="/hello.html">Home</a> |
+        <a href="/market.html">Market</a> |
+        <a href="/portfolio.php">Portfolio</a> |
+        <a href="/news.php">News &amp; IPOs</a> |
+        <a href="/contact.php">Contact Us</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

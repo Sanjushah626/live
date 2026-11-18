@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/fragments :: adminLayout(${pageTitle}, ${currentPage}, ${adminUsername}, ~{::section#adminPageBody})}">
+<body>
+<section id="adminPageBody">
+  <div class="page-header"><div><h1>Message Details</h1></div><a href="/contacts.php" class="btn btn-outline">Back to Inbox</a></div>
+  <div class="card" style="max-width:760px;">
+    <div class="detail-list">
+      <div class="detail-row"><span class="detail-label">Sender Name</span><span class="detail-value" th:text="${contact.name}">Name</span></div>
+      <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value" th:text="${contact.email}">Email</span></div>
+      <div class="detail-row"><span class="detail-label">Subject</span><span class="detail-value" th:text="${(contact.subject != null and !contact.subject.isEmpty()) ? contact.subject : '(No subject)'}">Subject</span></div>
+      <div class="detail-row"><span class="detail-label">Message</span><div class="detail-value" style="white-space:pre-wrap;" th:text="${contact.message}">Msg</div></div>
+      <div class="detail-row"><span class="detail-label">Received</span><span class="detail-value" th:text="${@fmt.dateTime(contact.createdAt)}">Date</span></div>
+    </div>
+    <div class="action-buttons" style="margin-top:20px;">
+      <a th:href="'mailto:' + ${contact.email}" class="btn btn-primary">Reply via Email</a>
+      <a th:href="@{/delete_contact.php(id=${contact.id})}" class="btn btn-danger js-delete-btn" th:attr="data-message='Delete message from ' + ${contact.name} + '?'">Delete</a>
+    </div>
+  </div>
+</section>
+</body>
+</html>

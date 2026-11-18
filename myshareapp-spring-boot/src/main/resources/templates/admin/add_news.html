@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/fragments :: adminLayout(${pageTitle}, ${currentPage}, ${adminUsername}, ~{::section#adminPageBody})}">
+<body>
+<section id="adminPageBody">
+  <div class="page-header"><div><h1>Publish News</h1></div><a href="/newss.php" class="btn btn-outline">Back to News</a></div>
+  <div th:if="${success}" class="alert alert-success">News article published! <a href="/newss.php" style="text-decoration:underline;margin-left:6px;">View all news &rarr;</a></div>
+  <div th:if="${!#lists.isEmpty(errors)}" class="alert alert-danger"><ul><li th:each="err : ${errors}" th:text="${err}">Err</li></ul></div>
+  <div class="card" style="max-width:760px;">
+    <form action="/add_news.php" method="POST" enctype="multipart/form-data">
+      <div class="form-group"><label for="title">Headline Title</label><input type="text" id="title" name="title" class="form-control" maxlength="255" th:value="${title}" required></div>
+      <div class="form-group"><label for="description">Article Description</label><textarea id="description" name="description" class="form-control" rows="6" th:text="${description}" required></textarea></div>
+      <div class="form-group">
+        <label>Cover Image</label>
+        <input type="file" id="newsImageInput" name="image" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;">
+        <div id="imageUploadBox" class="image-upload-box"><i class="fa-solid fa-cloud-arrow-up"></i><div>Click or drag &amp; drop an image</div></div>
+        <div id="imagePreviewContainer"><img id="imagePreviewTag" src="" alt="Preview"></div>
+      </div>
+      <div class="action-buttons"><button type="submit" class="btn btn-primary">Publish News</button><a href="/newss.php" class="btn btn-outline">Cancel</a></div>
+    </form>
+  </div>
+</section>
+</body>
+</html>

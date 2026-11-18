@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us — MyShareApp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .contact-wrap { max-width: 640px; margin: 0 auto; }
+    .page-heading { margin: 4px 0 8px; }
+    .page-heading h2 { color: var(--text-primary); font-weight: 800; font-size: 24px; letter-spacing: -0.02em; margin: 0 0 6px; }
+    .page-heading p { color: var(--text-secondary); font-size: 13.5px; margin: 0; }
+    .contact-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px 30px; margin-top: 18px; box-shadow: var(--shadow-sm); }
+    .contact-card label { display: block; margin-top: 16px; font-weight: 600; font-size: 13px; color: var(--text-secondary); }
+    .contact-card label:first-of-type { margin-top: 0; }
+    .contact-card input, .contact-card textarea { width: 100%; padding: 10px 12px; margin-top: 6px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 9px; font-size: 14px; }
+    .contact-card textarea { resize: vertical; min-height: 140px; }
+    .contact-card button { margin-top: 22px; width: 100%; padding: 12px; background: var(--accent); color: #fff; border: none; border-radius: 9px; cursor: pointer; font-weight: 700; font-size: 14px; }
+    .alert { border-radius: 10px; padding: 14px 16px; font-size: 13.5px; margin-bottom: 18px; }
+    .alert.success { background: var(--green-soft); color: var(--green); border: 1px solid rgba(22,163,74,0.3); font-weight: 600; }
+    .alert.error { background: var(--red-soft); color: var(--red); border: 1px solid rgba(220,38,38,0.3); }
+  </style>
+</head>
+<body>
+  <div th:replace="~{fragments/public-layout :: header('contact')}"></div>
+  <main class="container-main">
+    <div class="contact-wrap">
+      <div class="page-heading">
+        <h2>Contact Us</h2>
+        <p>Have a question, found a bug, or want to suggest something? Send us a message below.</p>
+      </div>
+      <div class="contact-card">
+        <div th:if="${success}" class="alert success">Thanks — your message has been sent. We'll get back to you soon.</div>
+        <div th:if="${!#lists.isEmpty(errors)}" class="alert error">
+          Please fix the following:
+          <ul><li th:each="err : ${errors}" th:text="${err}">Error</li></ul>
+        </div>
+        <form action="/contact.php" method="POST">
+          <label for="name">Name</label>
+          <input type="text" id="name" name="name" th:value="${formName}" required>
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" th:value="${formEmail}" required>
+          <label for="subject">Subject</label>
+          <input type="text" id="subject" name="subject" th:value="${formSubject}" placeholder="What's this about?">
+          <label for="message">Message</label>
+          <textarea id="message" name="message" required placeholder="Tell us what's on your mind..." th:text="${formMessage}"></textarea>
+          <button type="submit">Send Message</button>
+        </form>
+      </div>
+    </div>
+  </main>
+  <div th:replace="~{fragments/public-layout :: footer}"></div>
+  <script src="/script.js"></script>
+</body>
+</html>

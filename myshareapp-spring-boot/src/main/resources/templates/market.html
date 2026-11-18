@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEPSE Live Market &amp; Top Brokers — MyShareApp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <style>
+    .market-header-row {
+      display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+      margin: 4px 0 18px;
+    }
+    .page-title { color: var(--text-primary); font-weight: 800; font-size: 24px; letter-spacing: -0.02em; margin: 0; }
+    .page-sub { color: var(--text-secondary); font-size: 13.5px; margin: 4px 0 0; }
+    .market-view-tabs {
+      display: inline-flex; gap: 4px; background: var(--bg-elevated); padding: 4px; border-radius: 10px;
+      border: 1px solid var(--border); margin-bottom: 18px;
+    }
+    .market-view-tab {
+      border: none; background: transparent; padding: 8px 16px; border-radius: 7px; font-size: 13px;
+      font-weight: 700; color: var(--text-secondary); cursor: pointer; transition: all 0.15s ease;
+    }
+    .market-view-tab.active { background: var(--bg-surface); color: var(--accent); box-shadow: var(--shadow-xs); }
+    .market-panel { display: none; }
+    .market-panel.active { display: block; }
+    .market-toolbar { display: flex; align-items: center; gap: 12px; margin: 0 0 18px; flex-wrap: wrap; }
+    .search-wrap { position: relative; flex: 1; min-width: 240px; max-width: 380px; }
+    .search-wrap input {
+      width: 100%; padding: 10px 14px 10px 38px; background: var(--bg-surface);
+      border: 1px solid var(--border); border-radius: 10px; font-size: 14px; color: var(--text-primary);
+    }
+    .search-wrap input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .search-wrap::before {
+      content: ""; position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+      width: 13px; height: 13px; border: 2px solid var(--text-muted); border-radius: 50%;
+    }
+    .search-wrap::after {
+      content: ""; position: absolute; left: 23px; top: 61%; width: 6px; height: 2px;
+      background: var(--text-muted); transform: rotate(45deg); transform-origin: left center;
+    }
+    .filter-pills { display: inline-flex; gap: 4px; background: var(--bg-elevated); padding: 4px; border-radius: 10px; border: 1px solid var(--border); flex-wrap: wrap; }
+    .filter-pill {
+      border: none; background: transparent; padding: 6px 12px; border-radius: 7px; font-size: 12.5px;
+      font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: all 0.15s ease;
+    }
+    .filter-pill.active { background: var(--bg-surface); color: var(--accent); box-shadow: var(--shadow-xs); }
+    #resultCount, #brokerResultCount { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-left: auto; }
+    #clearSearch {
+      background: var(--bg-surface); border: 1px solid var(--border); color: var(--text-secondary);
+      padding: 9px 14px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600; display: none;
+    }
+    #clearSearch:hover { color: var(--text-primary); border-color: var(--accent); }
+    .broker-summary-strip {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px;
+    }
+    .broker-stat-card {
+      background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px;
+      box-shadow: var(--shadow-xs);
+    }
+    .broker-stat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 4px; }
+    .broker-stat-value { font-size: 18px; font-weight: 800; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+    .table-wrap { border: 1px solid var(--border); border-radius: 14px; overflow-x: auto; background: var(--bg-surface); box-shadow: var(--shadow-sm); }
+    table.live-table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 820px; }
+    .live-table thead th {
+      background: var(--bg-elevated); color: var(--text-secondary); font-weight: 700; font-size: 11px;
+      text-transform: uppercase; letter-spacing: 0.04em; padding: 13px 12px; text-align: right;
+      border-bottom: 1px solid var(--border); white-space: nowrap;
+    }
+    .live-table thead th.sortable { cursor: pointer; user-select: none; }
+    .live-table thead th.sortable:hover { color: var(--accent); }
+    .live-table thead th:first-child, .live-table thead th:nth-child(2) { text-align: left; }
+    .live-table thead th:last-child { text-align: center; }
+    .live-table tbody td {
+      padding: 12px; text-align: right; color: var(--text-primary);
+      font-variant-numeric: tabular-nums; border-bottom: 1px solid var(--border-soft);
+    }
+    .live-table tbody td:first-child { text-align: left; font-weight: 700; color: var(--accent); }
+    .company-name { text-align: left !important; color: var(--text-secondary); font-weight: 500; max-width: 260px; }
+    .action-cell { text-align: center !important; white-space: nowrap; }
+    .action-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+      padding: 6px 11px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;
+      border: 1px solid transparent; transition: all 0.15s ease; margin: 0 2px; text-decoration: none;
+    }
+    .btn-depth { background: var(--accent-soft); color: var(--accent); border-color: rgba(37,99,235,0.25); }
+    .btn-depth:hover { background: var(--accent); color: #fff; }
+    .btn-graph { background: var(--green-soft); color: var(--green); border-color: rgba(22,163,74,0.25); }
+    .btn-graph:hover { background: var(--green); color: #fff; }
+    .live-table tbody tr:hover { background: var(--bg-row-hover); }
+    .live-table tbody tr:last-child td { border-bottom: none; }
+    .empty-row td { text-align: center !important; color: var(--text-muted); padding: 36px 12px; }
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.65); }
+    .modal-content {
+      background: var(--bg-surface); border: 1px solid var(--border); margin: 4% auto; padding: 26px 30px 30px;
+      width: 600px; max-width: 92%; max-height: 90vh; overflow-y: auto; border-radius: 16px;
+      box-shadow: var(--shadow-md); animation: fadeIn 0.2s ease-out; color: var(--text-primary);
+    }
+    .close { float: right; font-size: 24px; font-weight: 700; cursor: pointer; color: var(--text-muted); line-height: 1; }
+    .close:hover { color: var(--text-primary); }
+    .modal-content h2 { text-align: center; margin: 0 0 18px; color: var(--text-primary); font-size: 19px; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: translateY(0); } }
+    #depthModal .modal-content { width: 540px; }
+    .depth-table { width: 100%; border-collapse: collapse; margin-bottom: 18px; font-size: 13px; }
+    .depth-table th { padding: 10px 8px; font-weight: 700; text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.06em; text-align: center; }
+    .depth-table th.buy-header { background: var(--green-soft); color: var(--green); }
+    .depth-table th.sell-header { background: var(--red-soft); color: var(--red); }
+    .depth-table td { padding: 9px 8px; text-align: center; border-bottom: 1px solid var(--border-soft); font-weight: 600; font-variant-numeric: tabular-nums; }
+    .depth-table .total-row { background: var(--bg-elevated); font-weight: 800; font-size: 13.5px; border-top: 2px solid var(--border); }
+    .depth-loading, .depth-closed, .graph-loading, .graph-error { text-align: center; padding: 36px 16px; color: var(--text-muted); font-size: 14px; }
+    .graph-error { color: var(--red); }
+    .depth-actions { display: flex; gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .depth-actions a {
+      flex: 1; padding: 11px 18px; border-radius: 10px; font-size: 13.5px; font-weight: 700; text-decoration: none;
+      text-align: center; transition: all 0.15s ease;
+    }
+    .btn-depth-buy { background: var(--green-soft); color: var(--green); border: 1px solid rgba(22,163,74,0.3); }
+    .btn-depth-buy:hover { background: var(--green); color: #fff; }
+    .btn-depth-sell { background: var(--red-soft); color: var(--red); border: 1px solid rgba(220,38,38,0.3); }
+    .btn-depth-sell:hover { background: var(--red); color: #fff; }
+    #graphModal .modal-content { width: 760px; max-width: 95%; }
+    .graph-date { text-align: center; font-size: 12.5px; color: var(--text-muted); margin-top: -10px; margin-bottom: 6px; font-weight: 600; }
+    .graph-price-line { display: flex; align-items: baseline; justify-content: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+    .gp-price { font-size: 26px; font-weight: 800; color: var(--text-primary); }
+    .gp-change { font-size: 14px; font-weight: 700; }
+    .graph-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0 0; }
+    .graph-summary-item { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }
+    .gs-label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 4px; }
+    .gs-value { font-size: 16px; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+    @media (max-width: 760px) {
+      .broker-summary-strip { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div th:replace="~{fragments/public-layout :: header('market')}"></div>
+
+  <main class="container-main">
+    <div class="market-header-row">
+      <div>
+        <h2 class="page-title">NEPSE Live Market &amp; Brokers</h2>
+        <p class="page-sub">All listed equities, real-time depth, charts, and NEPSE member broker volume rankings via YONEPSE API.</p>
+      </div>
+    </div>
+
+    <div class="market-view-tabs" role="tablist">
+      <button type="button" class="market-view-tab active" data-market-tab="scrips">Live Scrips</button>
+      <button type="button" class="market-view-tab" data-market-tab="brokers">Top Brokers (Volume &amp; Turnover)</button>
+    </div>
+
+    <section class="market-panel active" id="panelScrips">
+      <div class="market-toolbar">
+        <div class="search-wrap">
+          <input type="text" id="searchInput" placeholder="Search by symbol or company name..." autocomplete="off">
+        </div>
+        <div class="filter-pills" id="filterPills">
+          <button type="button" class="filter-pill active" data-filter="all">All</button>
+          <button type="button" class="filter-pill" data-filter="gainers">Gainers</button>
+          <button type="button" class="filter-pill" data-filter="losers">Losers</button>
+          <button type="button" class="filter-pill" data-filter="unchanged">Unchanged</button>
+        </div>
+        <button id="clearSearch">Clear</button>
+        <span id="resultCount"></span>
+      </div>
+
+      <div class="table-wrap">
+        <table class="live-table">
+          <thead>
+            <tr>
+              <th class="sortable" data-sort="symbol">Symbol</th>
+              <th>Company Name</th>
+              <th>Prev Close</th>
+              <th>High / Low</th>
+              <th class="sortable" data-sort="ltp">LTP</th>
+              <th class="sortable" data-sort="pct">% Change</th>
+              <th class="sortable" data-sort="volume">Volume</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="marketBody">
+            <tr class="empty-row"><td colspan="8">Loading market data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="market-panel" id="panelBrokers">
+      <div class="broker-summary-strip" id="brokerSummaryStrip">
+        <div class="broker-stat-card"><div class="broker-stat-label">Total Brokers</div><div class="broker-stat-value" id="bsTotal">-</div></div>
+        <div class="broker-stat-card"><div class="broker-stat-label">Active Today</div><div class="broker-stat-value" id="bsActive">-</div></div>
+        <div class="broker-stat-card"><div class="broker-stat-label">Today Total Volume</div><div class="broker-stat-value" id="bsVolume">-</div></div>
+        <div class="broker-stat-card"><div class="broker-stat-label">Today Turnover</div><div class="broker-stat-value" id="bsTurnover">-</div></div>
+      </div>
+
+      <div class="market-toolbar">
+        <div class="search-wrap">
+          <input type="text" id="brokerSearchInput" placeholder="Search broker code, name, district, or top stock..." autocomplete="off">
+        </div>
+        <div class="filter-pills" id="brokerSortPills">
+          <button type="button" class="filter-pill active" data-bsort="turnover">Today Turnover</button>
+          <button type="button" class="filter-pill" data-bsort="volume">Today Volume</button>
+          <button type="button" class="filter-pill" data-bsort="buy">Buy Amount</button>
+          <button type="button" class="filter-pill" data-bsort="sell">Sell Amount</button>
+          <button type="button" class="filter-pill" data-bsort="thirty">30-Day Turnover</button>
+          <button type="button" class="filter-pill" data-bsort="rating">Rating</button>
+        </div>
+        <span id="brokerResultCount"></span>
+      </div>
+
+      <div class="table-wrap">
+        <table class="live-table" style="min-width:980px;">
+          <thead>
+            <tr>
+              <th>Rank / Code</th>
+              <th style="text-align:left;">Broker Name &amp; Districts</th>
+              <th>Today Volume</th>
+              <th>Buy Amt / Vol</th>
+              <th>Sell Amt / Vol</th>
+              <th>Matching Amt</th>
+              <th>Today Turnover</th>
+              <th>30-Day Turnover</th>
+              <th>Top Stock</th>
+              <th>Rating / TMS</th>
+            </tr>
+          </thead>
+          <tbody id="brokersBody">
+            <tr class="empty-row"><td colspan="10">Loading broker rankings...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div id="depthModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeDepthModal()">&times;</span>
+      <h2>Market Depth &mdash; <span id="depthSymbol" style="color:var(--accent)">SYMBOL</span></h2>
+      <div id="depthLoading" class="depth-loading">Loading market depth...</div>
+      <div id="depthTableWrap" style="display:none;">
+        <table class="depth-table">
+          <thead>
+            <tr>
+              <th colspan="3" class="buy-header">TOP 5 BUY</th>
+              <th colspan="3" class="sell-header">TOP 5 SELL</th>
+            </tr>
+            <tr>
+              <th>Orders</th>
+              <th>Qty</th>
+              <th>Price</th>
+              <th>Price</th>
+              <th>Qty</th>
+              <th>Orders</th>
+            </tr>
+          </thead>
+          <tbody id="depthTableBody"></tbody>
+          <tfoot>
+            <tr class="total-row">
+              <td colspan="3">Total Buy Qty: <span id="totalBuyQty">0</span></td>
+              <td colspan="3">Total Sell Qty: <span id="totalSellQty">0</span></td>
+            </tr>
+          </tfoot>
+        </table>
+        <div class="depth-actions">
+          <a href="#" class="btn-depth-buy" id="depthBuyLink" target="_blank" rel="noopener noreferrer">Buy <span id="buySymbol">SYMBOL</span></a>
+          <a href="#" class="btn-depth-sell" id="depthSellLink" target="_blank" rel="noopener noreferrer">Sell <span id="sellSymbol">SYMBOL</span></a>
+        </div>
+      </div>
+      <div id="depthClosed" class="depth-closed" style="display:none;">
+        <div>Market depth is currently unavailable.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="graphModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeGraphModal()">&times;</span>
+      <h2>Price History &mdash; <span id="graphSymbol" style="color:var(--accent)">SYMBOL</span></h2>
+      <div id="graphLoading" class="graph-loading">Loading chart data...</div>
+      <div id="graphWrap" style="display:none;">
+        <div class="graph-date" id="graphDate"></div>
+        <div class="graph-price-line" id="graphPriceLine"></div>
+        <div id="graphChart"></div>
+        <div class="graph-summary" id="graphSummary"></div>
+      </div>
+      <div id="graphError" class="graph-error" style="display:none;">
+        <div>Unable to load chart data right now.</div>
+      </div>
+    </div>
+  </div>
+
+  <div th:replace="~{fragments/public-layout :: footer}"></div>
+
+  <script src="/script.js"></script>
+  <script>
+    let marketData = [];
+    let currentFilter = "all";
+    let sortKey = "symbol";
+    let sortDir = 1;
+    let graphChart = null;
+    let brokersData = [];
+    let brokerSortKey = "turnover";
+    let brokersLoaded = false;
+
+    function formatMoney(num) {
+      return (Number(num) || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function compactRs(num) {
+      const n = Number(num) || 0;
+      if (n >= 1e9) return "Rs. " + (n / 1e9).toFixed(2) + " Arba";
+      if (n >= 1e7) return "Rs. " + (n / 1e7).toFixed(2) + " Cr";
+      if (n >= 1e5) return "Rs. " + (n / 1e5).toFixed(2) + " L";
+      return "Rs. " + n.toLocaleString("en-US", { maximumFractionDigits: 0 });
+    }
+
+    function activateMarketTab(tabName) {
+      document.querySelectorAll(".market-view-tab").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.marketTab === tabName);
+      });
+      document.getElementById("panelScrips").classList.toggle("active", tabName === "scrips");
+      document.getElementById("panelBrokers").classList.toggle("active", tabName === "brokers");
+      if (tabName === "brokers" && !brokersLoaded) {
+        loadBrokersData();
+      }
+    }
+
+    document.querySelectorAll(".market-view-tab").forEach(btn => {
+      btn.addEventListener("click", () => activateMarketTab(btn.dataset.marketTab));
+    });
+
+    const initialTab = new URLSearchParams(window.location.search).get("tab");
+    if (initialTab === "brokers") {
+      activateMarketTab("brokers");
+    }
+
+    function renderRows(rows) {
+      const body = document.getElementById("marketBody");
+      body.innerHTML = "";
+      if (!rows.length) {
+        body.innerHTML = '<tr class="empty-row"><td colspan="8">No matching stocks found.</td></tr>';
+        return;
+      }
+      rows.forEach(row => {
+        const symbol = row.symbol ?? "N/A";
+        const name = row.securityName ?? row.name ?? "-";
+        const prevClose = Number(row.previousClose ?? row.previous_close ?? 0);
+        const ltp = Number(row.lastTradedPrice ?? row.ltp ?? 0);
+        const high = Number(row.high ?? ltp);
+        const low = Number(row.low ?? ltp);
+        const pct = Number(row.percentageChange ?? row.percent_change ?? 0);
+        const vol = Number(row.volume ?? row.shareTraded ?? 0);
+        const cls = pct > 0 ? "positive" : pct < 0 ? "negative" : "";
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${escapeHtml(symbol)}</td>
+          <td class="company-name">${escapeHtml(name)}</td>
+          <td>${formatMoney(prevClose)}</td>
+          <td style="color:var(--text-secondary);font-size:12.5px;">${formatMoney(high)} / ${formatMoney(low)}</td>
+          <td class="${cls}">${formatMoney(ltp)}</td>
+          <td class="${cls}">${pct > 0 ? "+" : ""}${pct.toFixed(2)}%</td>
+          <td>${vol.toLocaleString()}</td>
+          <td class="action-cell">
+            <button type="button" class="action-btn btn-depth" onclick="openDepthModal('${escapeHtml(symbol)}')">Depth</button>
+            <button type="button" class="action-btn btn-graph" onclick="openGraphModal('${escapeHtml(symbol)}')">Graph</button>
+          </td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    function applySearchAndSort() {
+      const query = document.getElementById("searchInput").value.trim().toUpperCase();
+      document.getElementById("clearSearch").style.display = query ? "inline-block" : "none";
+
+      let rows = marketData.filter(row => {
+        const pct = Number(row.percentageChange ?? row.percent_change ?? 0);
+        if (currentFilter === "gainers" && pct <= 0) return false;
+        if (currentFilter === "losers" && pct >= 0) return false;
+        if (currentFilter === "unchanged" && pct !== 0) return false;
+        if (!query) return true;
+        const symbol = (row.symbol ?? "").toUpperCase();
+        const name = (row.securityName ?? row.name ?? "").toUpperCase();
+        return symbol.includes(query) || name.includes(query);
+      });
+
+      rows.sort((a, b) => {
+        if (sortKey === "symbol") return String(a.symbol || "").localeCompare(String(b.symbol || "")) * sortDir;
+        if (sortKey === "ltp") return ((Number(a.ltp) || 0) - (Number(b.ltp) || 0)) * sortDir;
+        if (sortKey === "pct") return ((Number(a.percent_change) || 0) - (Number(b.percent_change) || 0)) * sortDir;
+        if (sortKey === "volume") return ((Number(a.volume) || 0) - (Number(b.volume) || 0)) * sortDir;
+        return 0;
+      });
+
+      renderRows(rows);
+      document.getElementById("resultCount").textContent =
+        rows.length === marketData.length ? `${marketData.length} stocks` : `${rows.length} of ${marketData.length} stocks`;
+    }
+
+    document.getElementById("searchInput").addEventListener("input", applySearchAndSort);
+    document.getElementById("clearSearch").addEventListener("click", () => {
+      document.getElementById("searchInput").value = "";
+      applySearchAndSort();
+    });
+
+    document.querySelectorAll("#filterPills .filter-pill").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#filterPills .filter-pill").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentFilter = btn.dataset.filter;
+        applySearchAndSort();
+      });
+    });
+
+    document.querySelectorAll("th.sortable").forEach(th => {
+      th.addEventListener("click", () => {
+        const key = th.dataset.sort;
+        if (sortKey === key) sortDir *= -1;
+        else { sortKey = key; sortDir = key === "symbol" ? 1 : -1; }
+        applySearchAndSort();
+      });
+    });
+
+    async function loadMarketData() {
+      try {
+        const response = await fetch("/LiveMarket");
+        if (!response.ok) throw new Error("Unable to fetch market data");
+        marketData = await response.json();
+        applySearchAndSort();
+      } catch (error) {
+        console.error("Market API Error:", error);
+        document.getElementById("marketBody").innerHTML =
+          '<tr class="empty-row"><td colspan="8">Unable to load market data.</td></tr>';
+      }
+    }
+    loadMarketData();
+    setInterval(loadMarketData, 30000);
+
+    function renderBrokers() {
+      const tbody = document.getElementById("brokersBody");
+      const query = document.getElementById("brokerSearchInput").value.trim().toUpperCase();
+      let list = brokersData.filter(b => {
+        if (!query) return true;
+        const hay = `${b.memberCode} ${b.memberName} ${(b.districts || []).join(" ")} ${b.topStock || ""}`.toUpperCase();
+        return hay.includes(query);
+      });
+
+      list.sort((a, b) => {
+        if (brokerSortKey === "volume") return (b.totalVolume || 0) - (a.totalVolume || 0);
+        if (brokerSortKey === "buy") return (b.buyAmount || 0) - (a.buyAmount || 0);
+        if (brokerSortKey === "sell") return (b.sellAmount || 0) - (a.sellAmount || 0);
+        if (brokerSortKey === "thirty") return (b.thirtyDaysTurnover || 0) - (a.thirtyDaysTurnover || 0);
+        if (brokerSortKey === "rating") return (b.averageRating || 0) - (a.averageRating || 0);
+        return (b.latestTurnover || 0) - (a.latestTurnover || 0);
+      });
+
+      document.getElementById("brokerResultCount").textContent =
+        list.length === brokersData.length ? `${brokersData.length} brokers` : `${list.length} of ${brokersData.length} brokers`;
+
+      if (!list.length) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="10">No matching brokers found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map((b, idx) => {
+        const districtsText = Array.isArray(b.districts) && b.districts.length
+          ? b.districts.slice(0, 3).join(", ") + (b.districts.length > 3 ? ` +${b.districts.length - 3}` : "")
+          : `${b.branchCount || 1} branch`;
+        const rating = b.averageRating != null ? `${b.averageRating.toFixed(1)} ★ (${b.totalRatings})` : "—";
+        const tmsBtn = b.tmsLink
+          ? `<a href="${escapeHtml(b.tmsLink)}" target="_blank" rel="noopener noreferrer" class="action-btn btn-depth" style="margin-left:4px;">TMS</a>`
+          : "";
+        return `
+          <tr>
+            <td>
+              <span class="broker-rank-badge">#${idx + 1}</span>
+              <span class="broker-code-pill" style="margin-left:6px;">#${escapeHtml(b.memberCode)}</span>
+            </td>
+            <td class="company-name">
+              <div style="font-weight:700;color:var(--text-primary);">${escapeHtml(b.memberName)}</div>
+              <div style="font-size:11.5px;color:var(--text-muted);">${escapeHtml(districtsText)}</div>
+            </td>
+            <td><strong>${Number(b.totalVolume || 0).toLocaleString()}</strong></td>
+            <td>
+              <div class="positive">${compactRs(b.buyAmount)}</div>
+              <div style="font-size:11.5px;color:var(--text-muted);">${Number(b.buyQuantity || 0).toLocaleString()} sh</div>
+            </td>
+            <td>
+              <div class="negative">${compactRs(b.sellAmount)}</div>
+              <div style="font-size:11.5px;color:var(--text-muted);">${Number(b.sellQuantity || 0).toLocaleString()} sh</div>
+            </td>
+            <td>
+              <div>${compactRs(b.matchingAmount)}</div>
+              <div style="font-size:11.5px;color:var(--text-muted);">${Number(b.matchingQuantity || 0).toLocaleString()} sh</div>
+            </td>
+            <td><strong>${compactRs(b.latestTurnover)}</strong></td>
+            <td>${compactRs(b.thirtyDaysTurnover)}</td>
+            <td>${b.topStock ? `<span class="sym-badge">${escapeHtml(b.topStock)}</span>` : "—"}</td>
+            <td class="action-cell">${rating}${tmsBtn}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    async function loadBrokersData() {
+      try {
+        const res = await fetch("/TopBrokers");
+        const data = await res.json();
+        brokersData = Array.isArray(data?.brokers) ? data.brokers : [];
+        const s = data?.summary || {};
+        document.getElementById("bsTotal").textContent = s.totalBrokers || brokersData.length || 0;
+        document.getElementById("bsActive").textContent = s.activeTodayCount || 0;
+        document.getElementById("bsVolume").textContent = Number(s.activeVolumeTotal || 0).toLocaleString();
+        document.getElementById("bsTurnover").textContent = compactRs(s.activeTurnoverTotal || 0);
+        brokersLoaded = true;
+        renderBrokers();
+      } catch (e) {
+        document.getElementById("brokersBody").innerHTML =
+          '<tr class="empty-row"><td colspan="10">Unable to load broker rankings right now.</td></tr>';
+      }
+    }
+
+    document.getElementById("brokerSearchInput").addEventListener("input", renderBrokers);
+    document.querySelectorAll("#brokerSortPills .filter-pill").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#brokerSortPills .filter-pill").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        brokerSortKey = btn.dataset.bsort;
+        renderBrokers();
+      });
+    });
+
+    var depthModal = document.getElementById("depthModal");
+    var graphModal = document.getElementById("graphModal");
+
+    function openDepthModal(symbol) {
+      document.getElementById("depthSymbol").textContent = symbol;
+      document.getElementById("buySymbol").textContent = symbol;
+      document.getElementById("sellSymbol").textContent = symbol;
+      document.getElementById("depthBuyLink").href = "https://tms87.nepsetms.com.np/tms/me/memberclientorderentry?symbol=" + encodeURIComponent(symbol) + "&transaction=buy";
+      document.getElementById("depthSellLink").href = "https://tms87.nepsetms.com.np/tms/me/memberclientorderentry?symbol=" + encodeURIComponent(symbol) + "&transaction=sell";
+      depthModal.style.display = "block";
+      document.getElementById("depthLoading").style.display = "block";
+      document.getElementById("depthTableWrap").style.display = "none";
+      document.getElementById("depthClosed").style.display = "none";
+
+      Promise.all([
+        fetch("/MarketDepth?symbol=" + encodeURIComponent(symbol)).then(r => r.json()),
+        fetch("/PriceVolume").then(r => r.json())
+      ]).then(([depthData, priceData]) => {
+        document.getElementById("depthLoading").style.display = "none";
+        const buyList = depthData?.marketDepth?.buyMarketDepthList || [];
+        const sellList = depthData?.marketDepth?.sellMarketDepthList || [];
+        if (!buyList.length && !sellList.length) {
+          document.getElementById("depthClosed").style.display = "block";
+          return;
+        }
+        document.getElementById("depthTableWrap").style.display = "block";
+        const stockInfo = Array.isArray(priceData) ? priceData.find(i => i.symbol === symbol) : null;
+        const ltp = Number(stockInfo?.lastTradedPrice ?? stockInfo?.ltp ?? 0);
+        const pct = Number(stockInfo?.percentageChange ?? stockInfo?.percent_change ?? 0);
+        const existingLtp = document.getElementById("depthLTP");
+        if (existingLtp) existingLtp.remove();
+        if (ltp > 0) {
+          const div = document.createElement("div");
+          div.id = "depthLTP";
+          div.innerHTML = `<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+            <span style="font-size:24px;font-weight:800;">Rs. ${formatMoney(ltp)}</span>
+            <span style="font-size:13px;font-weight:700;padding:4px 10px;border-radius:8px;background:${pct >= 0 ? 'var(--green-soft)' : 'var(--red-soft)'};color:${pct >= 0 ? 'var(--green)' : 'var(--red)'};">${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%</span>
+          </div>`;
+          const wrap = document.getElementById("depthTableWrap");
+          wrap.insertBefore(div, wrap.firstChild);
+        }
+        const tbody = document.getElementById("depthTableBody");
+        tbody.innerHTML = "";
+        for (let i = 0; i < 5; i++) {
+          const buy = buyList[i] || {};
+          const sell = sellList[i] || {};
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${buy.orderCount ?? "-"}</td>
+            <td>${buy.quantity != null ? Number(buy.quantity).toLocaleString() : "-"}</td>
+            <td class="positive">${buy.orderBookOrderPrice ?? "-"}</td>
+            <td class="negative">${sell.orderBookOrderPrice ?? "-"}</td>
+            <td>${sell.quantity != null ? Number(sell.quantity).toLocaleString() : "-"}</td>
+            <td>${sell.orderCount ?? "-"}</td>
+          `;
+          tbody.appendChild(row);
+        }
+        document.getElementById("totalBuyQty").textContent = Number(depthData.totalBuyQty || 0).toLocaleString();
+        document.getElementById("totalSellQty").textContent = Number(depthData.totalSellQty || 0).toLocaleString();
+      }).catch(() => {
+        document.getElementById("depthLoading").style.display = "none";
+        document.getElementById("depthClosed").style.display = "block";
+      });
+    }
+
+    function closeDepthModal() { depthModal.style.display = "none"; }
+
+    function openGraphModal(symbol) {
+      document.getElementById("graphSymbol").textContent = symbol;
+      graphModal.style.display = "block";
+      document.getElementById("graphLoading").style.display = "block";
+      document.getElementById("graphWrap").style.display = "none";
+      document.getElementById("graphError").style.display = "none";
+
+      fetch("/DailyScripPriceGraph?symbol=" + encodeURIComponent(symbol))
+        .then(r => r.json())
+        .then(data => {
+          document.getElementById("graphLoading").style.display = "none";
+          if (!Array.isArray(data) || !data.length) {
+            document.getElementById("graphError").style.display = "block";
+            return;
+          }
+          document.getElementById("graphWrap").style.display = "block";
+          data.sort((a, b) => a.time - b.time);
+          const isHist = data[0].mode === "historical";
+          const seriesData = data.map(pt => ({ x: pt.time * 1000, y: pt.contractRate || 0 }));
+          const prices = data.map(pt => pt.contractRate || 0);
+          const openPrice = prices[0];
+          const highPrice = Math.max(...prices);
+          const lowPrice = Math.min(...prices);
+          const closePrice = prices[prices.length - 1];
+          const change = closePrice - openPrice;
+          const changePct = openPrice > 0 ? (change / openPrice) * 100 : 0;
+          const cls = change >= 0 ? "positive" : "negative";
+          const sign = change >= 0 ? "+" : "";
+          const isDark = document.documentElement.dataset.theme === "dark";
+          const lineColor = change >= 0 ? (isDark ? "#22c55e" : "#16a34a") : (isDark ? "#f87171" : "#ef4444");
+          const axisColor = isDark ? "#94a3b8" : "#64748b";
+          const gridColor = isDark ? "#334155" : "#e2e8f0";
+
+          document.getElementById("graphDate").textContent = isHist
+            ? `${symbol} — Daily LTP (${data[0].date} to ${data[data.length - 1].date})`
+            : `${symbol} — Session Trend (${data[0].date || "Today"})`;
+          document.getElementById("graphPriceLine").innerHTML =
+            `<span class="gp-price">Rs. ${formatMoney(closePrice)}</span>` +
+            `<span class="gp-change ${cls}">${change >= 0 ? "▲" : "▼"} ${formatMoney(Math.abs(change))} (${sign}${changePct.toFixed(2)}%)</span>`;
+          document.getElementById("graphSummary").innerHTML = `
+            <div class="graph-summary-item"><span class="gs-label">${isHist ? "Period Start" : "Open"}</span><span class="gs-value">${formatMoney(openPrice)}</span></div>
+            <div class="graph-summary-item"><span class="gs-label">High</span><span class="gs-value">${formatMoney(highPrice)}</span></div>
+            <div class="graph-summary-item"><span class="gs-label">Low</span><span class="gs-value">${formatMoney(lowPrice)}</span></div>
+            <div class="graph-summary-item"><span class="gs-label">Latest Close</span><span class="gs-value">${formatMoney(closePrice)}</span></div>
+            <div class="graph-summary-item"><span class="gs-label">Change</span><span class="gs-value ${cls}">${sign}${formatMoney(change)}</span></div>
+            <div class="graph-summary-item"><span class="gs-label">Change %</span><span class="gs-value ${cls}">${sign}${changePct.toFixed(2)}%</span></div>
+          `;
+
+          if (graphChart) graphChart.destroy();
+          graphChart = new ApexCharts(document.querySelector("#graphChart"), {
+            series: [{ name: symbol, data: seriesData }],
+            chart: { type: "area", height: 340, foreColor: axisColor, background: "transparent", fontFamily: "Inter, sans-serif", toolbar: { show: false }, zoom: { enabled: false } },
+            colors: [lineColor],
+            fill: { type: "gradient", gradient: { shadeIntensity: 1, opacityFrom: isDark ? 0.36 : 0.3, opacityTo: 0.02, stops: [0, 100] } },
+            dataLabels: { enabled: false },
+            stroke: { curve: "smooth", width: 2.5 },
+            xaxis: { type: "datetime", labels: { style: { fontSize: "11px", colors: axisColor } } },
+            yaxis: { labels: { style: { fontSize: "11px", colors: axisColor }, formatter: v => v.toFixed(1) } },
+            grid: { borderColor: gridColor, strokeDashArray: 4 },
+            tooltip: { theme: isDark ? "dark" : "light", y: { formatter: v => "Rs. " + formatMoney(v) } }
+          });
+          graphChart.render();
+        })
+        .catch(() => {
+          document.getElementById("graphLoading").style.display = "none";
+          document.getElementById("graphError").style.display = "block";
+        });
+    }
+
+    function closeGraphModal() {
+      graphModal.style.display = "none";
+      if (graphChart) { graphChart.destroy(); graphChart = null; }
+    }
+
+    window.addEventListener("click", e => {
+      if (e.target === depthModal) closeDepthModal();
+      if (e.target === graphModal) closeGraphModal();
+    });
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") {
+        if (depthModal.style.display === "block") closeDepthModal();
+        if (graphModal.style.display === "block") closeGraphModal();
+      }
+    });
+  </script>
+</body>
+</html>

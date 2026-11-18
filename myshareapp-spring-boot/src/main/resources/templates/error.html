@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Error — MyShareApp</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div th:replace="~{fragments/public-layout :: header('')}"></div>
+  <main class="container-main">
+    <div style="max-width:520px;margin:48px auto;background:#fff;border:1px solid var(--border);border-radius:18px;padding:36px 30px;text-align:center;">
+      <h2 th:text="${title != null ? title : 'Error'}">Error</h2>
+      <p th:text="${message != null ? message : 'The requested page could not be displayed.'}">Message</p>
+      <a href="/hello.html" class="login-btn" style="display:inline-block;text-decoration:none;margin-top:12px;">Back to Dashboard</a>
+    </div>
+  </main>
+  <div th:replace="~{fragments/public-layout :: footer}"></div>
+  <script src="/script.js"></script>
+</body>
+</html>

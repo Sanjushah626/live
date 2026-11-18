@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Portfolio — MyShareApp</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>.form-wrap{max-width:500px;margin:12px auto;}.form-card{background: var(--bg-surface);border:1px solid var(--border);border-radius:16px;padding:28px 30px;}.form-card label{display:block;margin-top:14px;font-weight:600;font-size:13px;}.form-card input,.form-card select{width:100%;padding:10px 12px;margin-top:6px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:9px;}.form-actions{display:flex;gap:10px;margin-top:22px;}.btn-primary-full{flex:1;padding:11px;border:none;border-radius:9px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer;}.btn-cancel-link{padding:11px 18px;border-radius:9px;border:1px solid var(--border);text-decoration:none;color:var(--text-secondary);}</style>
+</head>
+<body>
+  <div th:replace="~{fragments/public-layout :: header('portfolio')}"></div>
+  <main class="container-main">
+    <div class="form-wrap"><div class="form-card">
+      <h2>Edit Portfolio</h2>
+      <form th:action="@{/edit_portfolio.php(id=${portfolio.id})}" method="POST">
+        <input type="hidden" name="id" th:value="${portfolio.id}">
+        <label for="portfolio_name">Portfolio Name</label>
+        <input type="text" id="portfolio_name" name="portfolio_name" th:value="${portfolio.portfolioName}" required>
+        <label for="portfolio_type">Portfolio Type</label>
+        <select id="portfolio_type" name="portfolio_type" required>
+          <option value="personal" th:selected="${portfolio.portfolioType == 'personal'}">Personal</option>
+          <option value="institutional" th:selected="${portfolio.portfolioType == 'institutional'}">Institutional</option>
+        </select>
+        <div class="form-actions"><button type="submit" class="btn-primary-full">Save Changes</button><a href="/portfolio.php" class="btn-cancel-link">Cancel</a></div>
+      </form>
+    </div></div>
+  </main>
+  <div th:replace="~{fragments/public-layout :: footer}"></div>
+  <script src="/script.js"></script>
+</body>
+</html>

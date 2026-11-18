@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up — MyShareApp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    body.auth-body { min-height: 100vh; display: flex; flex-direction: column; background: var(--bg-app); }
+    .auth-main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 36px 16px; }
+    .auth-card { width: 100%; max-width: 440px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 18px; padding: 32px 30px; box-shadow: var(--shadow-md); }
+    .auth-brand { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 18px; text-decoration: none; }
+    .auth-card h2 { margin: 0 0 6px; text-align: center; font-size: 22px; font-weight: 800; }
+    .auth-subtitle { text-align: center; font-size: 13.5px; color: var(--text-secondary); margin: 0 0 22px; }
+    .auth-alert { border-radius: 10px; padding: 12px 14px; font-size: 13px; margin-bottom: 16px; }
+    .auth-alert.error { background: var(--red-soft); color: var(--red); border: 1px solid rgba(220, 38, 38, 0.25); }
+    .auth-alert.success { background: var(--green-soft); color: var(--green); border: 1px solid rgba(22, 163, 74, 0.25); font-weight: 600; }
+    .auth-field { margin-bottom: 14px; }
+    .auth-field label { display: block; font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+    .auth-input { width: 100%; padding: 11px 13px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px; font-size: 14px; }
+    .auth-submit { width: 100%; margin-top: 8px; padding: 12px; border: none; border-radius: 10px; background: var(--green); color: #fff; font-weight: 700; cursor: pointer; }
+    .auth-links { margin-top: 18px; text-align: center; font-size: 13.5px; color: var(--text-secondary); }
+    .auth-links a { color: var(--accent); font-weight: 600; }
+  </style>
+</head>
+<body class="auth-body">
+  <div th:replace="~{fragments/public-layout :: header('signup')}"></div>
+  <main class="auth-main">
+    <div class="auth-card">
+      <a href="/hello.html" class="auth-brand"><span class="brand-logo">M</span><span class="brand-name">MyShare<span>App</span></span></a>
+      <h2>Create Your Account</h2>
+      <p class="auth-subtitle">Track holdings, compute NEPSE broker/CGT fees, and monitor live prices.</p>
+      <div th:if="${success}" class="auth-alert success">Account created successfully! <a href="/login.php" style="color:inherit;text-decoration:underline;">Sign in now &rarr;</a></div>
+      <div th:if="${!#lists.isEmpty(errors)}" class="auth-alert error">
+        <strong>Please fix the following:</strong>
+        <ul><li th:each="err : ${errors}" th:text="${err}">Error</li></ul>
+      </div>
+      <form action="/signup.php" method="POST">
+        <div class="auth-field"><label for="username">Username</label><input type="text" id="username" name="username" class="auth-input" th:value="${formUsername}" required></div>
+        <div class="auth-field"><label for="email">Email Address</label><input type="email" id="email" name="email" class="auth-input" th:value="${formEmail}" required></div>
+        <div class="auth-field"><label for="password">Password</label><input type="password" id="password" name="password" class="auth-input" required></div>
+        <div class="auth-field"><label for="confirm_password">Confirm Password</label><input type="password" id="confirm_password" name="confirm_password" class="auth-input" required></div>
+        <button type="submit" class="auth-submit">Create Account</button>
+      </form>
+      <div class="auth-links">Already have an account? <a href="/login.php">Sign In</a></div>
+    </div>
+  </main>
+  <div th:replace="~{fragments/public-layout :: footer}"></div>
+  <script src="/script.js"></script>
+</body>
+</html>
